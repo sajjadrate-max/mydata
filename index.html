@@ -2,826 +2,972 @@
 <html lang="ur" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>میرا ڈیٹا — آن لائن محفوظ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>لمحہ — کیمرہ</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#1F4E79">
-<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="میرا ڈیٹا">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="لمحہ">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@700&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;600;700&display=swap">
 <style>
-/* Layout: top bar with folder path, then folders as tiles and files as a grid of cards.
-   A floating "+" opens upload / new folder. Files open in a full-screen viewer. */
+/* Layout: full-screen camera; filter strip + shutter at the bottom, tools at the top.
+   After a shot: full-screen editor (text, drawing, stickers, filters) with Save / Keep / Share. */
 [hidden]{display:none!important}
-:root{
-  --bg:#EEF2F6; --surface:#FFFFFF; --fg:#16212C; --muted:#5B6874; --line:#D5DDE5;
-  --accent:#1F4E79; --accent-ink:#FFFFFF; --soft:#E2EBF4; --cta:#F2B632; --cta-ink:#221800;
-  --danger:#B3402F; --ok:#2F7D3E; --scrim:rgba(8,14,22,.82);
-  --display:"Noto Nastaliq Urdu","Noto Naskh Arabic",serif;
-  --body:"Noto Naskh Arabic",Tahoma,sans-serif;
-}
-@media (prefers-color-scheme:dark){:root{
-  --bg:#0F151C; --surface:#18212B; --fg:#E4ECF3; --muted:#98A6B3; --line:#2A3642;
-  --accent:#6FA8DC; --accent-ink:#08182A; --soft:#1F2C3A; --danger:#F08A78; --ok:#7BC88A; color-scheme:dark}}
-*{box-sizing:border-box}
-html,body{margin:0}
-body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.7;
-  padding:16px max(14px,env(safe-area-inset-right,0px)) 110px max(14px,env(safe-area-inset-left,0px))}
-.wrap{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
-h1{font-family:var(--display);font-size:1.6rem;line-height:2.1;margin:0}
-.lead{color:var(--muted);margin:0;font-size:.95rem}
-button{font:inherit;cursor:pointer;border:0;color:inherit;background:none}
-input{font:inherit}
-input:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--cta);outline-offset:2px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
-.field{width:100%;color:var(--fg);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px}
-.btn{background:var(--accent);color:var(--accent-ink);font-weight:700;padding:11px 18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
-.btn.ghost{background:var(--soft);color:var(--fg)}
-.btn.danger{background:var(--danger);color:#fff}
-.btn:disabled{opacity:.6;cursor:wait}
-.status{border-radius:10px;padding:10px 14px;font-size:.95rem}
-.status.err{border:1.5px solid var(--danger);color:var(--danger)}
-.status.info{border:1.5px dashed var(--line);color:var(--muted)}
-.top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.home{color:var(--muted);text-decoration:none;font-size:.9rem}
-.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-weight:600}
-.crumbs button{padding:4px 10px;border-radius:8px;background:var(--soft)}
-.crumbs button[aria-current]{background:var(--accent);color:var(--accent-ink)}
-.crumbs .sep{color:var(--muted)}
-.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.tools .field{flex:1;min-width:160px;padding:9px 12px}
-.tabs-unused{display:flex;gap:6px;flex-wrap:wrap}
-.tabs button{border:1.5px solid var(--line);border-radius:999px;padding:3px 12px;font-size:.88rem;color:var(--muted)}
-.tabs button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:700}
-.sec{font-weight:700;color:var(--muted);font-size:.9rem;margin:4px 2px -6px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.folder{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:right;min-width:0}
-.folder .ic{font-size:1.6rem;flex:none}
-.folder .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
-.file{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
-.thumb{aspect-ratio:4/3;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:2.4rem;position:relative;overflow:hidden;width:100%}
-.thumb img,.thumb video{width:100%;height:100%;object-fit:cover;display:block}
-.thumb .badge{position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,.6);color:#fff;font-size:.72rem;border-radius:6px;padding:0 6px;direction:ltr}
-.meta{padding:6px 10px 8px;display:flex;flex-direction:column;gap:0}
-.meta .nm{font-size:.88rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:auto;text-align:right}
-.meta .sz{font-size:.75rem;color:var(--muted)}
-.empty{color:var(--muted);text-align:center;padding:30px 10px}
-.fab{position:fixed;left:max(18px,env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:flex-start;gap:10px;z-index:5}
-.fab .main{width:60px;height:60px;border-radius:50%;background:var(--cta);color:var(--cta-ink);font-size:2rem;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25)}
-.fab .opt{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:9px 16px;font-weight:600;box-shadow:0 3px 10px rgba(0,0,0,.15)}
-.uploads{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(340px,calc(100% - 110px));background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;box-shadow:0 4px 18px rgba(0,0,0,.2);display:flex;flex-direction:column;gap:6px;max-height:40vh;overflow:auto;z-index:5}
-.up{font-size:.82rem}
-.up .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bar{height:6px;background:var(--soft);border-radius:4px;overflow:hidden}
-.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
-.up.done .bar i{background:var(--ok)} .up.fail{color:var(--danger)} .up.fail .bar i{background:var(--danger)}
-.viewer{position:fixed;inset:0;background:var(--scrim);z-index:10;display:flex;flex-direction:column}
-.vbar{display:flex;align-items:center;gap:8px;padding:10px max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px));color:#fff;background:rgba(0,0,0,.35)}
-.vbar .t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:auto}
-.vbar button,.vbar a{color:#fff;background:rgba(255,255,255,.14);border-radius:10px;padding:6px 12px;text-decoration:none;font-size:.9rem;white-space:nowrap}
-.vbody{flex:1;display:flex;align-items:center;justify-content:center;padding:10px;min-height:0}
-.vbody img,.vbody video{max-width:100%;max-height:100%;border-radius:8px}
-.vbody iframe{width:100%;height:100%;border:0;background:#fff;border-radius:8px}
-.vbody .other{color:#fff;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center;font-size:1.05rem}
-.vbody .other .big{font-size:4rem}
-.dialog{position:fixed;inset:0;background:var(--scrim);z-index:20;display:flex;align-items:center;justify-content:center;padding:20px}
-.dialog .card{width:min(420px,100%)}
-.dialog .row{display:flex;gap:8px;justify-content:flex-start;flex-wrap:wrap}
-.spin{display:inline-block;width:16px;height:16px;border:2px solid currentColor;border-left-color:transparent;border-radius:50%;animation:r .8s linear infinite}
-@keyframes r{to{transform:rotate(360deg)}}
-.drop{outline:3px dashed var(--accent);outline-offset:-8px}
-.hero{background:linear-gradient(135deg,#1F4E79,#0E2A47);color:#fff;border-radius:20px;padding:20px 20px 18px;display:flex;flex-direction:column;gap:6px;box-shadow:0 6px 20px rgba(14,42,71,.25)}
-.hero .row1{display:flex;align-items:center;gap:12px}
-.hero .logo{width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:1.7rem;flex:none}
-.hero h1{color:#fff;font-size:1.5rem;line-height:2}
-.hero p{margin:0;color:rgba(255,255,255,.82);font-size:.92rem}
-.feats{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.feats span{background:rgba(255,255,255,.12);border-radius:999px;padding:2px 12px;font-size:.8rem;color:#fff}
-.auth{align-items:center;text-align:center;padding:26px 20px;gap:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
-.auth .badge-ic{width:64px;height:64px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:1.9rem}
-.auth h2{margin:0;font-size:1.2rem}
-.auth .lead{max-width:360px}
-.auth .field{text-align:center;max-width:340px}
-.auth .btn{width:100%;max-width:340px;padding:13px}
-.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;text-align:right;width:100%;max-width:420px}
-.steps li{display:flex;gap:12px;align-items:flex-start}
-.steps .n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem}
-.steps li div{padding-top:2px}
-.steps small{display:block;color:var(--muted);font-size:.85rem}
-.tag{display:inline-block;direction:ltr;background:var(--soft);border-radius:6px;padding:0 8px;font-weight:700;font-size:.88rem}
-.btnrow{display:flex;gap:8px;width:100%;max-width:340px;flex-wrap:wrap}
-.btnrow .btn{flex:1;min-width:140px}
-.foot{color:var(--muted);font-size:.8rem;text-align:center}
-.gbox{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:340px}
-#gBtn,#gLink{min-height:44px;display:flex;justify-content:center}
-.or{display:flex;align-items:center;gap:10px;width:100%;color:var(--muted);font-size:.85rem}
-.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
-.menu{display:flex;flex-direction:column;gap:8px}
-.menu button{background:var(--soft);border-radius:12px;padding:12px 14px;text-align:right;font-weight:600;display:flex;flex-direction:column;gap:0}
-.menu button small{font-weight:400;color:var(--muted)}
-.help{font-size:.85rem;color:var(--muted);margin:0;padding-inline-start:18px}
-.help li{margin-bottom:4px}
-.dialog .card{max-height:90vh;overflow:auto}
-.bnav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:var(--surface);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));box-shadow:0 -2px 12px rgba(0,0,0,.06)}
-.bnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;font-size:.78rem;color:var(--muted);padding:4px 0;border-radius:10px}
-.bnav button span{font-size:1.25rem;line-height:1.4;filter:grayscale(1);opacity:.7}
-.bnav button[aria-current]{color:var(--accent);font-weight:700}
-.bnav button[aria-current] span{filter:none;opacity:1}
-body.in{padding-bottom:150px}
-body.in .fab{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
-body.in .uploads{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
-.rows{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.rowi{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);min-width:0}
-.rowi:last-child{border-bottom:0}
-.rowi .main{flex:1;display:flex;align-items:center;gap:12px;min-width:0;text-align:right}
-.rowi .ic{width:44px;height:44px;border-radius:10px;background:var(--soft);flex:none;display:flex;align-items:center;justify-content:center;font-size:1.4rem;overflow:hidden;position:relative}
-.rowi .ic img{width:100%;height:100%;object-fit:cover}
-.rowi .ic.fold{background:#FCE9B8;color:#9A6A08}
-.rowi .tx{display:flex;flex-direction:column;min-width:0}
-.rowi .tx b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.95rem}
-.rowi .tx small{color:var(--muted);font-size:.78rem}
-.more{flex:none;width:36px;height:36px;border-radius:50%;font-size:1.3rem;color:var(--muted);line-height:1}
-.more:hover{background:var(--soft)}
-.file{position:relative}
-.file .more{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.45);color:#fff;width:30px;height:30px;font-size:1.1rem}
-.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-#list{display:flex;flex-direction:column;gap:12px}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;min-width:0}
-.stat .ic{font-size:1.5rem}
-.stat b{display:block;font-size:.8rem;white-space:nowrap}
-.stat small{color:var(--muted);font-size:.7rem;display:block}
-.usage{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:6px}
-.usage .bar{height:8px}
-.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px}
-.gallery button{aspect-ratio:1;background:var(--soft);border-radius:6px;overflow:hidden;position:relative;padding:0}
-.gallery img,.gallery video{width:100%;height:100%;object-fit:cover;display:block}
-.gallery .play{position:absolute;inset:auto auto 6px 6px;background:rgba(0,0,0,.6);color:#fff;border-radius:6px;font-size:.7rem;padding:0 6px}
-.h2{font-weight:700;font-size:1.05rem;margin:6px 2px 0}
-.acct{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
-.acct .av{width:46px;height:46px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex:none}
-.sheet-h{display:flex;align-items:center;gap:10px;min-width:0}
-.sheet-h b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-body.in .hero{padding:12px 16px;border-radius:16px}
-body.in .hero .feats,body.in .hero p{display:none}
-body.in .hero .logo{width:38px;height:38px;font-size:1.3rem;border-radius:11px}
-body.in .hero h1{font-size:1.25rem;line-height:1.8}
-.tools .btn.ghost{padding:9px 13px;flex:none}
+:root{--a1:#7C3AED;--a2:#06B6D4;--ink:#fff;--glass:rgba(20,20,28,.42);--glass2:rgba(255,255,255,.16);
+  --body:"Noto Naskh Arabic",system-ui,Tahoma,sans-serif;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#000;color:var(--ink);font-family:var(--body);overflow:hidden;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+.screen{position:fixed;inset:0;overflow:hidden;background:#000}
+.ibtn{width:44px;height:44px;border-radius:50%;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:1.25rem;position:relative}
+.ibtn.on{background:#fff;color:#111}
+.ibtn small{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);font-size:.6rem;font-weight:700;background:#fff;color:#111;border-radius:6px;padding:0 4px;line-height:1.3}
+.ibtn svg{width:24px;height:24px}
+
+/* camera */
+#v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:center}
+#vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,#000 100%);opacity:0;transition:opacity .2s}
+#gridL{position:absolute;inset:0;pointer-events:none;background:
+  linear-gradient(to right,transparent calc(33.33% - .5px),rgba(255,255,255,.35) calc(33.33% - .5px),rgba(255,255,255,.35) calc(33.33% + .5px),transparent calc(33.33% + .5px),transparent calc(66.66% - .5px),rgba(255,255,255,.35) calc(66.66% - .5px),rgba(255,255,255,.35) calc(66.66% + .5px),transparent calc(66.66% + .5px)),
+  linear-gradient(to bottom,transparent calc(33.33% - .5px),rgba(255,255,255,.35) calc(33.33% - .5px),rgba(255,255,255,.35) calc(33.33% + .5px),transparent calc(33.33% + .5px),transparent calc(66.66% - .5px),rgba(255,255,255,.35) calc(66.66% - .5px),rgba(255,255,255,.35) calc(66.66% + .5px),transparent calc(66.66% + .5px))}
+#whiteFlash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .12s}
+#shotFlash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.ttop{position:absolute;top:calc(12px + var(--safe-t));left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;z-index:3}
+.tcol{display:flex;flex-direction:column;gap:12px}
+.brand{font-weight:700;font-size:1.05rem;letter-spacing:.5px;background:var(--glass);padding:6px 14px;border-radius:999px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.brand b{background:linear-gradient(90deg,#C4B5FD,#67E8F9);-webkit-background-clip:text;background-clip:text;color:transparent}
+#zoomLbl{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(190px + var(--safe-b));background:var(--glass);padding:2px 12px;border-radius:999px;font-size:.85rem;direction:ltr;z-index:3}
+.focus{position:absolute;width:74px;height:74px;margin:-37px 0 0 -37px;border:2px solid #FDE68A;border-radius:50%;pointer-events:none;animation:fr .7s ease forwards;z-index:3}
+@keyframes fr{0%{transform:scale(1.4);opacity:1}60%{transform:scale(1);opacity:1}100%{opacity:0}}
+#count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7rem;font-weight:700;text-shadow:0 4px 30px rgba(0,0,0,.5);pointer-events:none;z-index:4}
+.bottom{position:absolute;left:0;right:0;bottom:0;padding:0 0 calc(18px + var(--safe-b));z-index:3;background:linear-gradient(transparent,rgba(0,0,0,.45))}
+#fname{text-align:center;font-weight:700;font-size:.95rem;text-shadow:0 1px 6px rgba(0,0,0,.6);height:24px;margin-bottom:4px}
+.strip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px calc(50% - 31px);scrollbar-width:none;direction:ltr}
+.strip::-webkit-scrollbar{display:none}
+.fchip{flex:none;width:62px;height:62px;border-radius:50%;scroll-snap-align:center;border:2px solid rgba(255,255,255,.55);overflow:hidden;position:relative;transition:transform .15s}
+.fchip.sel{border-color:#fff;transform:scale(1.08)}
+.fchip span{position:absolute;inset:0;background-size:cover;background-position:center}
+.row{display:flex;align-items:center;justify-content:space-around;margin-top:10px;direction:ltr}
+.shutter{width:82px;height:82px;border-radius:50%;position:relative;touch-action:none}
+.shutter .ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(#EF4444 var(--p,0%),rgba(255,255,255,.95) 0);-webkit-mask:radial-gradient(circle,transparent 33px,#000 34px);mask:radial-gradient(circle,transparent 33px,#000 34px)}
+.shutter .core{position:absolute;inset:9px;border-radius:50%;background:rgba(255,255,255,.25);transition:all .15s}
+.shutter:active .core{background:rgba(255,255,255,.55);inset:12px}
+.shutter.rec .core{background:#EF4444;inset:22px;border-radius:12px}
+.side{width:52px;height:52px;border-radius:14px;background:var(--glass);display:flex;align-items:center;justify-content:center;font-size:1.4rem;overflow:hidden;border:2px solid rgba(255,255,255,.6)}
+.side img{width:100%;height:100%;object-fit:cover}
+.hint{text-align:center;font-size:.75rem;opacity:.8;margin-top:6px}
+#recTime{position:absolute;top:calc(16px + var(--safe-t));left:50%;transform:translateX(-50%);background:#EF4444;padding:2px 12px;border-radius:999px;font-weight:700;direction:ltr;z-index:4}
+
+/* editor */
+#stage{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center}
+#box{position:relative;touch-action:none}
+#ec,#dc{position:absolute;inset:0;width:100%;height:100%}
+#dc{pointer-events:none}
+#box.drawing #dc{pointer-events:auto}
+#box.drawing #ov{pointer-events:none}
+#ov{position:absolute;inset:0;overflow:hidden}
+.item{position:absolute;left:0;top:0;transform-origin:center;white-space:pre;touch-action:none;cursor:grab;line-height:1.25;text-align:center;font-weight:700}
+.item.t-shadow{text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.item.t-pill{padding:.15em .55em;border-radius:.5em}
+.item.t-outline{-webkit-text-stroke:.06em #000;paint-order:stroke fill}
+.item.emoji{font-size:64px;line-height:1}
+.etop{position:absolute;top:calc(12px + var(--safe-t));left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;z-index:5;pointer-events:none}
+.etop>*{pointer-events:auto}
+.ebot{position:absolute;left:0;right:0;bottom:0;padding:12px 14px calc(14px + var(--safe-b));display:flex;gap:10px;align-items:center;z-index:5;background:linear-gradient(transparent,rgba(0,0,0,.55));direction:ltr}
+.pill{height:48px;border-radius:999px;padding:0 18px;display:flex;align-items:center;gap:8px;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-weight:700;font-size:.95rem;white-space:nowrap}
+.pill.go{margin-left:auto;background:linear-gradient(90deg,var(--a1),var(--a2));padding:0 22px;font-size:1rem;box-shadow:0 4px 18px rgba(124,58,237,.45)}
+.palette{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:6}
+.palette button{width:28px;height:28px;border-radius:50%;border:2px solid #fff}
+.palette button.sel{transform:scale(1.3)}
+#estrip{position:absolute;left:0;right:0;bottom:calc(82px + var(--safe-b));z-index:5}
+#trash{position:absolute;left:50%;bottom:calc(96px + var(--safe-b));transform:translateX(-50%);width:56px;height:56px;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:1.5rem;z-index:6;transition:transform .15s}
+#trash.hot{transform:translateX(-50%) scale(1.25);background:#EF4444}
+#busy{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;z-index:20;font-weight:600}
+.spin{width:38px;height:38px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#toast{position:fixed;left:50%;bottom:calc(110px + var(--safe-b));transform:translateX(-50%);background:rgba(20,20,28,.9);padding:10px 18px;border-radius:999px;z-index:30;font-weight:600;font-size:.92rem;white-space:nowrap}
+
+/* text input */
+#tin{position:absolute;inset:0;z-index:12;background:rgba(0,0,0,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px}
+#tinField{width:100%;max-width:520px;min-height:60px;background:transparent;border:0;outline:0;color:#fff;font:700 2rem var(--body);text-align:center;resize:none;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.trow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;direction:ltr}
+.trow button.c{width:30px;height:30px;border-radius:50%;border:2px solid #fff}
+.trow button.c.sel{transform:scale(1.25)}
+
+/* sheets */
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:62%;background:#15151d;border-radius:22px 22px 0 0;z-index:14;padding:10px 14px calc(14px + var(--safe-b));display:flex;flex-direction:column;gap:10px;box-shadow:0 -10px 40px rgba(0,0,0,.5)}
+.sheet .grab{width:44px;height:5px;border-radius:3px;background:#444;margin:0 auto}
+.emojis{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:6px;overflow:auto;font-size:2rem;text-align:center}
+.emojis button{padding:4px;border-radius:10px}
+.emojis button:active{background:#2a2a36}
+
+/* memories */
+#mem{background:#0d0d12}
+.mhead{position:sticky;top:0;display:flex;align-items:center;gap:12px;padding:calc(12px + var(--safe-t)) 14px 12px;background:rgba(13,13,18,.92);backdrop-filter:blur(10px);z-index:2}
+.mhead h2{margin:0;font-size:1.2rem;flex:1}
+#mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;overflow:auto;height:calc(100% - 70px - var(--safe-t))}
+#mgrid button{aspect-ratio:9/14;background:#222 center/cover;position:relative;border-radius:4px}
+#mgrid button i{position:absolute;bottom:4px;left:6px;font-style:normal;font-size:.75rem;background:rgba(0,0,0,.55);border-radius:6px;padding:0 5px}
+.mempty{padding:60px 20px;text-align:center;opacity:.7;line-height:2}
+#viewer video,#viewer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+
+/* permission */
+#perm{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;gap:16px;background:radial-gradient(circle at 30% 20%,#2e1065,#000 70%)}
+#perm img{width:96px;height:96px;border-radius:24px}
+#perm h1{margin:0;font-size:1.6rem}
+#perm p{margin:0;opacity:.85;line-height:1.9;max-width:420px}
+.big{height:52px;border-radius:999px;padding:0 30px;font-weight:700;font-size:1.05rem;background:linear-gradient(90deg,var(--a1),var(--a2))}
+.ghost{height:46px;border-radius:999px;padding:0 24px;font-weight:600;background:var(--glass2)}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="hero">
-    <div class="row1"><span class="logo">☁️</span><div><h1>میرا ڈیٹا</h1><p>آپ کی فائلیں، محفوظ اور آن لائن</p></div></div>
-    <div class="feats"><span>🔒 پاس ورڈ سے محفوظ</span><span>📁 لامحدود فولڈر</span><span>📱 موبائل میموری خالی</span></div>
-  </header>
 
-  <!-- Checking -->
-  <div class="card auth" id="boot"><span class="spin" style="width:28px;height:28px"></span><span class="lead">رابطہ ہو رہا ہے…</span></div>
+<!-- Start / permission -->
+<section class="screen" id="perm">
+  <img src="icon-512.png" alt="">
+  <h1>لمحہ</h1>
+  <p id="permText">ہر لمحہ خوبصورت۔ بہترین کوالٹی کی تصویریں اور ویڈیوز بنائیں، فلٹر لگائیں، لکھیں، سجائیں اور شیئر کریں۔</p>
+  <button class="big" id="startBtn">📷 کیمرہ کھولیں</button>
+  <button class="ghost" id="permGallery">🖼️ فون سے تصویر ایڈٹ کریں</button>
+</section>
 
-  <!-- Password -->
-  <form class="card auth" id="login" hidden>
-    <span class="badge-ic">🔒</span>
-    <h2>خوش آمدید</h2>
-    <div id="gLogin" class="gbox" hidden>
-      <p class="lead">اپنے Gmail اکاؤنٹ سے لاگ ان کریں۔</p>
-      <div id="gBtn"></div>
-      <div class="or"><span>یا پاس ورڈ سے</span></div>
+<!-- Camera -->
+<section class="screen" id="cam" hidden>
+  <video id="v" playsinline muted autoplay></video>
+  <div id="vig"></div>
+  <div id="gridL" hidden></div>
+  <div id="whiteFlash"></div>
+  <div id="shotFlash"></div>
+  <div id="count" hidden></div>
+  <div id="recTime" hidden>0:00</div>
+  <div class="ttop">
+    <div class="tcol">
+      <button class="ibtn" id="flipBtn" title="کیمرہ بدلیں" aria-label="کیمرہ بدلیں"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3l-2-3H9L7 7H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z"/><path d="M9 13.5a3 3 0 0 1 5.2-2"/><path d="M15 12.5a3 3 0 0 1-5.2 2"/><path d="M14.5 9.5v2h-2"/><path d="M9.5 16.5v-2h2"/></svg></button>
+      <button class="ibtn" id="flashBtn" title="فلیش" aria-label="فلیش">⚡<small id="flashLbl">بند</small></button>
+      <button class="ibtn" id="timerBtn" title="ٹائمر" aria-label="ٹائمر">⏱️<small id="timerLbl">بند</small></button>
+      <button class="ibtn" id="gridBtn" title="گرڈ" aria-label="گرڈ">#</button>
+      <button class="ibtn" id="mirrorBtn" title="سیلفی الٹی/سیدھی" aria-label="سیلفی الٹی یا سیدھی">⇋</button>
     </div>
-    <p class="lead" id="pwLead">اپنی فائلیں دیکھنے کے لیے پاس ورڈ درج کریں۔</p>
-    <input class="field" id="pw" type="password" autocomplete="current-password" placeholder="پاس ورڈ" required>
-    <button class="btn" id="loginBtn" type="submit">کھولیں</button>
-    <div class="status err" id="loginMsg" hidden></div>
-  </form>
+    <div class="brand"><b>لمحہ</b></div>
+  </div>
+  <div id="zoomLbl" hidden>1.0×</div>
+  <div class="bottom">
+    <div id="fname"></div>
+    <div class="strip" id="strip"></div>
+    <div class="row">
+      <button class="side" id="memBtn" title="محفوظ لمحے" aria-label="محفوظ لمحے">⭐</button>
+      <button class="shutter" id="shutter" aria-label="تصویر کھینچیں، دبا کر رکھیں تو ویڈیو"><span class="ring"></span><span class="core"></span></button>
+      <button class="side" id="galBtn" title="فون سے تصویر" aria-label="فون سے تصویر">🖼️</button>
+    </div>
+    <div class="hint">ٹیپ = تصویر · دبا کر رکھیں = ویڈیو · دو انگلیوں سے زوم</div>
+  </div>
+</section>
 
-  <!-- First time: create the password -->
-  <form class="card auth" id="newpass" hidden>
-    <span class="badge-ic">🔑</span>
-    <h2>اپنا پاس ورڈ بنائیں</h2>
-    <p class="lead">سب کچھ تیار ہے۔ اب ایک پاس ورڈ بنائیں۔ آپ کی فائلیں صرف اسی سے کھلیں گی، اس لیے اسے یاد رکھیں۔</p>
-    <input class="field" id="np1" type="password" autocomplete="new-password" placeholder="نیا پاس ورڈ (کم از کم 4 حروف)" minlength="4" required>
-    <input class="field" id="np2" type="password" autocomplete="new-password" placeholder="دوبارہ لکھیں" minlength="4" required>
-    <button class="btn" id="npBtn" type="submit">پاس ورڈ محفوظ کریں</button>
-    <div class="status err" id="npMsg" hidden></div>
-  </form>
-
-  <!-- Setup: storage not connected yet -->
-  <div class="card auth" id="setup" hidden>
-    <span class="badge-ic">🗄️</span>
-    <h2>بس ایک قدم باقی ہے</h2>
-    <p class="lead">فائلیں رکھنے کے لیے اسٹوریج جوڑنا ہے۔ یہ صرف ایک بار کرنا ہے، تقریباً 1 منٹ کا کام۔</p>
-    <ol class="steps">
-      <li><span class="n">1</span><div>Vercel میں <b>mydata</b> پراجیکٹ کھولیں اور <span class="tag">Storage</span> پر جائیں۔</div></li>
-      <li><span class="n">2</span><div><span class="tag">Create</span> دبائیں، پھر <span class="tag">Blob</span> منتخب کریں۔<small>نام کچھ بھی دیں۔ پوچھے تو Public چنیں، اور پراجیکٹ mydata سے جوڑ دیں۔</small></div></li>
-      <li><span class="n">3</span><div><span class="tag">Deployments</span> میں سب سے اوپر والی کے ⋯ پر دبا کر <span class="tag">Redeploy</span> کریں۔</div></li>
-    </ol>
-    <div class="btnrow">
-      <a class="btn" href="https://vercel.com/dashboard" target="_blank" rel="noopener" style="text-decoration:none">Vercel کھولیں ↗</a>
-      <button class="btn ghost" id="recheck" type="button">⟳ دوبارہ چیک کریں</button>
+<!-- Photo editor -->
+<section class="screen" id="edit" hidden>
+  <div id="stage"><div id="box"><canvas id="ec"></canvas><canvas id="dc"></canvas><div id="ov"></div></div></div>
+  <div class="etop">
+    <button class="ibtn" id="eClose" aria-label="ختم کریں">✕</button>
+    <div class="tcol">
+      <button class="ibtn" id="tText" title="لکھیں" aria-label="لکھیں"><b style="font-size:1.2rem">T</b></button>
+      <button class="ibtn" id="tDraw" title="ڈرا کریں" aria-label="ڈرا کریں">✏️</button>
+      <button class="ibtn" id="tSticker" title="اسٹیکر" aria-label="اسٹیکر">😊</button>
+      <button class="ibtn" id="tFilter" title="فلٹر" aria-label="فلٹر">✨</button>
+      <button class="ibtn" id="tUndo" title="واپس" aria-label="واپس" hidden>↶</button>
     </div>
   </div>
-
-  <div class="status err" id="err" hidden></div>
-
-  <!-- Drive -->
-  <section id="drive" hidden style="display:flex;flex-direction:column;gap:12px">
-    <div class="tools">
-      <input class="field" id="q" type="search" placeholder="🔍 تمام فائلوں میں تلاش کریں">
-      <button class="btn ghost" id="sortBtn" title="ترتیب" aria-label="ترتیب">⇅</button>
-      <button class="btn ghost" id="viewBtn" title="لسٹ / گرڈ" aria-label="لسٹ یا گرڈ">▦</button>
-    </div>
-    <nav class="crumbs" id="crumbs" aria-label="فولڈر کا راستہ"></nav>
-    <div id="list"></div>
-  </section>
-</div>
-
-<div class="fab" id="fab" hidden>
-  <div id="fabOpts" hidden style="display:flex;flex-direction:column;align-items:flex-start;gap:8px">
-    <button class="opt" id="optUpload">⬆️ فائلیں اپ لوڈ کریں</button>
-    <button class="opt" id="optFolder">📁 نیا فولڈر</button>
+  <div class="palette" id="palette" hidden></div>
+  <div id="estrip" hidden><div id="efname" style="text-align:center;font-weight:700;text-shadow:0 1px 6px #000;height:24px"></div><div class="strip" id="strip2"></div></div>
+  <div id="trash" hidden>🗑️</div>
+  <div class="ebot">
+    <button class="pill" id="eSave">⬇️ محفوظ</button>
+    <button class="pill" id="eKeep">⭐ رکھیں</button>
+    <button class="pill go" id="eShare">بھیجیں ➤</button>
   </div>
-  <button class="main" id="fabMain" aria-label="شامل کریں" aria-expanded="false">+</button>
-</div>
-<nav class="bnav" id="bnav" hidden aria-label="حصے">
-  <button data-tab="home"><span>🏠</span>ہوم</button>
-  <button data-tab="drive"><span>📁</span>ڈرائیو</button>
-  <button data-tab="media"><span>🖼️</span>میڈیا</button>
-  <button data-tab="menu"><span>☰</span>مینو</button>
-</nav>
-<input type="file" id="picker" multiple hidden>
-<div class="uploads" id="uploads" hidden></div>
-<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true"></div>
-<div class="dialog" id="dialog" hidden role="dialog" aria-modal="true"></div>
+  <div id="tin" hidden>
+    <textarea id="tinField" rows="2" placeholder="یہاں لکھیں…" dir="auto"></textarea>
+    <div class="trow" id="tColors"></div>
+    <div class="trow">
+      <button class="pill" id="tStyle">انداز: سایہ</button>
+      <button class="pill go" id="tDone" style="margin:0">✓ ٹھیک ہے</button>
+    </div>
+  </div>
+  <div class="sheet" id="stickers" hidden><div class="grab"></div><div class="emojis" id="emojis"></div></div>
+</section>
 
-<script type="module">
+<!-- Video preview -->
+<section class="screen" id="vedit" hidden>
+  <video id="vplay" playsinline loop autoplay style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain"></video>
+  <div class="etop"><button class="ibtn" id="vClose" aria-label="ختم کریں">✕</button><button class="ibtn" id="vMute" aria-label="آواز">🔊</button></div>
+  <div class="ebot">
+    <button class="pill" id="vSave">⬇️ محفوظ</button>
+    <button class="pill" id="vKeep">⭐ رکھیں</button>
+    <button class="pill go" id="vShare">بھیجیں ➤</button>
+  </div>
+</section>
+
+<!-- Memories -->
+<section class="screen" id="mem" hidden>
+  <div class="mhead"><button class="ibtn" id="memBack" aria-label="واپس">→</button><h2>⭐ محفوظ لمحے</h2><span id="memCount" style="opacity:.7;font-size:.9rem"></span></div>
+  <div id="mgrid"></div>
+</section>
+<section class="screen" id="viewer" hidden>
+  <div id="vwBody"></div>
+  <div class="etop"><button class="ibtn" id="vwClose" aria-label="بند کریں">✕</button><button class="ibtn" id="vwDel" aria-label="حذف کریں">🗑️</button></div>
+  <div class="ebot">
+    <button class="pill" id="vwSave">⬇️ فون میں محفوظ</button>
+    <button class="pill go" id="vwShare">بھیجیں ➤</button>
+  </div>
+</section>
+
+<input type="file" id="pick" accept="image/*" hidden>
+<div id="busy" hidden><div class="spin"></div><div id="busyTxt">بن رہی ہے…</div></div>
+<div id="toast" hidden></div>
+
+<script>
+'use strict';
 const $ = id => document.getElementById(id);
-const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const ROOT = 'mera-data/';
-const BLOB_CLIENT = './blob-client.js';   // @vercel/blob client, bundled locally (no CDN needed)
+const store = { get: (k, d) => { try { const v = localStorage.getItem('lamha.' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+                set: (k, v) => { try { localStorage.setItem('lamha.' + k, JSON.stringify(v)); } catch (e) {} } };
+function show(id) { for (const s of document.querySelectorAll('.screen')) s.hidden = s.id !== id; }
+let toastT; function toast(t) { const e = $('toast'); e.textContent = t; e.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => e.hidden = true, 2200); }
+function busy(on, t) { $('busy').hidden = !on; if (t) $('busyTxt').textContent = t; }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const withTimeout = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error('timeout')), ms))]);
 
-// The API lives in this same Vercel project (api/drive.js). A copy opened from anywhere
-// else (a saved file, GitHub Pages) talks to the deployed site instead.
-const SITE = 'https://mydata-ochre.vercel.app';
-const sameSite = /\.vercel\.app$/.test(location.hostname) || location.hostname === 'localhost';
-const store = { get: k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } },
-                set: (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch (e) {} } };
-const BASES = sameSite ? [''] : [SITE];
-let base = null;
-let key = store.get('driveKey');
-let path = decodeURIComponent((location.hash || '').replace(/^#\/?/, ''));
+// ============ filters ============
+// css: live preview (and first pass of the final image). The extra passes run on the
+// full-resolution photo: smooth = skin smoothing, sharpen = detail, bloom = soft glow.
+const FILTERS = [
+  { id: 'hd', name: 'HD', css: 'contrast(1.07) saturate(1.12) brightness(1.02)', sharpen: .55, auto: true },
+  { id: 'none', name: 'اصل', css: 'none' },
+  { id: 'glow', name: 'نکھار', css: 'brightness(1.06) saturate(1.06) contrast(.98)', smooth: .6, sharpen: .2, auto: true },
+  { id: 'vivid', name: 'شوخ', css: 'saturate(1.45) contrast(1.1)', sharpen: .3 },
+  { id: 'warm', name: 'گرم', css: 'sepia(.2) saturate(1.3) hue-rotate(-8deg) brightness(1.03)' },
+  { id: 'cool', name: 'ٹھنڈا', css: 'saturate(1.1) hue-rotate(12deg) brightness(1.04) contrast(1.03)' },
+  { id: 'golden', name: 'سنہرا', css: 'sepia(.35) saturate(1.45) brightness(1.06)', vignette: .25 },
+  { id: 'dream', name: 'خواب', css: 'brightness(1.08) saturate(1.2) contrast(.94)', bloom: .35, smooth: .3 },
+  { id: 'drama', name: 'ڈرامہ', css: 'contrast(1.35) saturate(.9) brightness(.98)', vignette: .45, sharpen: .4 },
+  { id: 'retro', name: 'پرانا', css: 'sepia(.45) contrast(.9) brightness(1.05) saturate(.85)', vignette: .35, grain: 14 },
+  { id: 'bw', name: 'سیاہ سفید', css: 'grayscale(1) contrast(1.2)', sharpen: .3 },
+  { id: 'noir', name: 'نوآر', css: 'grayscale(1) contrast(1.6) brightness(.9)', vignette: .5 }
+];
+const F = id => FILTERS.find(f => f.id === id) || FILTERS[0];
+let filterId = store.get('filter', 'hd');
+const ctxFilterOK = (() => { try { const c = document.createElement('canvas').getContext('2d'); c.filter = 'blur(1px)'; return c.filter === 'blur(1px)'; } catch (e) { return false; } })();
 
-// ---- server ----
-async function call(method, body, q) {
-  const r = await fetch(base + '/api/drive' + (q || ''), {
-    method, headers: { 'Content-Type': 'application/json', 'x-drive-key': key },
-    body: body ? JSON.stringify(body) : undefined
-  });
-  let j = {}; try { j = await r.json(); } catch (e) {}
-  if (!r.ok) { const e = new Error(j.error || 'server'); e.info = j; throw e; }
-  return j;
+function mk(w, h) { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; }
+// Blur by shrinking and enlarging again: works in every browser and is fast on big photos.
+function blurred(src, factor) {
+  const w = src.width, h = src.height, s = mk(w / factor, h / factor), sx = s.getContext('2d');
+  sx.imageSmoothingQuality = 'high'; sx.drawImage(src, 0, 0, s.width, s.height);
+  const o = mk(w, h), ox = o.getContext('2d'); ox.imageSmoothingQuality = 'high'; ox.drawImage(s, 0, 0, w, h);
+  return o;
 }
-// Finds the first address that answers like this API (it says "auth" or "setup" without a password).
-async function findBase() {
-  for (const b of BASES) {
-    try {
-      const r = await fetch(b + '/api/drive', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-drive-key': key || '-' }, body: '{"action":"check"}' });
-      const j = await r.json();
-      if (j && (j.ok || ['auth', 'setup', 'newpass'].includes(j.error))) { base = b; store.set('driveBase', b); return j; }
-    } catch (e) {}
-  }
-  return null;
-}
-
-// ---- helpers ----
-const NICE = name => name.replace(/-[A-Za-z0-9]{20,40}(?=(\.[^.\/]+)?$)/, '');  // drop the random suffix Blob adds
-const ext = n => (n.match(/\.([^.\/]+)$/) || [, ''])[1].toLowerCase();
-function typeOf(n) {
-  const e = ext(n);
-  if (/^(jpe?g|png|gif|webp|bmp|svg|heic|heif|avif)$/.test(e)) return 'image';
-  if (/^(mp4|mov|m4v|webm|mkv|3gp|avi)$/.test(e)) return 'video';
-  if (/^(mp3|m4a|aac|wav|ogg|opus|amr|flac)$/.test(e)) return 'audio';
-  if (e === 'pdf') return 'pdf';
-  return 'other';
-}
-const ICON = { image: '🖼️', video: '🎬', audio: '🎵', pdf: '📕', other: '📄' };
-const size = n => n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(0) + ' KB' : n < 1073741824 ? (n / 1048576).toFixed(1) + ' MB' : (n / 1073741824).toFixed(2) + ' GB';
-const when = d => { try { return new Date(d).toLocaleDateString('ur-PK', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
-const dl = u => u + (u.includes('?') ? '&' : '?') + 'download=1';
-function showErr(t) { const m = $('err'); m.textContent = t || ''; m.hidden = !t; }
-const ERR = {
-  auth: 'پاس ورڈ غلط ہے۔', google: 'Google سے تصدیق نہیں ہو سکی۔ Client ID چیک کریں اور دوبارہ کوشش کریں۔',
-  'google.other': 'یہ Gmail اکاؤنٹ اجازت یافتہ نہیں۔ وہی Gmail استعمال کریں جو لگایا گیا تھا۔', nogoogle: 'Gmail لاگ ان ابھی نہیں لگا۔', short: 'پاس ورڈ کم از کم 4 حروف کا ہو۔', 'bad.path': 'نام درست نہیں۔ \\ یا عجیب نشانات استعمال نہ کریں۔',
-  server: 'سرور سے رابطہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔', net: 'انٹرنیٹ کنکشن چیک کریں۔'
-};
-const errText = e => ERR[e && e.message] || ERR.server;
-
-// ---- screens ----
-const SCREENS = ['boot', 'setup', 'login', 'newpass', 'drive'];
-function screen(id) {
-  for (const x of SCREENS) $(x).hidden = x !== id;
-  $('fab').hidden = id !== 'drive';
-  $('bnav').hidden = id !== 'drive';
-  document.body.classList.toggle('in', id === 'drive');
-  if (id !== 'drive') showErr('');
-}
-function showSetup() { screen('setup'); }
-function showNewPass(msg) { screen('newpass'); $('npMsg').textContent = msg || ''; $('npMsg').hidden = !msg; $('np1').focus(); }
-let showLogin = function (msg) {
-  screen('login');
-  $('loginMsg').textContent = msg || ''; $('loginMsg').hidden = !msg;
-  $('pw').focus();
-}
-function showDrive() { screen('drive'); setTab(tab, true); }
-function route(e) {                     // server said something other than "ok"
-  if (e === 'setup') showSetup();
-  else if (e === 'newpass') showNewPass();
-  else { store.set('driveKey', ''); key = ''; showLogin(); }
-}
-
-let googleId = '';       // Google Client ID (from the server, when Gmail login is set up)
-let googleEmail = '';    // the Gmail address that may sign in
-function useSession(j) { if (j && j.session) { key = j.session; store.set('driveKey', key); } if (j && 'google' in j) googleEmail = j.google || ''; }
-
-async function start() {
-  screen('boot');
-  const j = await findBase();
-  if (!j) { screen(''); showErr('سرور سے رابطہ نہیں ہو سکا۔ انٹرنیٹ چیک کر کے صفحہ دوبارہ کھولیں۔'); return; }
-  googleId = j.google && j.error === 'auth' ? j.google : '';
-  if (j.error) { route(j.error); return; }
-  useSession(j); showDrive(); load();
-}
-$('recheck').onclick = start;
-
-// ---- Google sign-in (Google Identity Services) ----
-let gisReady = null;
-function loadGis() {
-  return gisReady = gisReady || new Promise((ok, fail) => {
-    const sc = document.createElement('script'); sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true;
-    sc.onload = () => ok(window.google); sc.onerror = () => { gisReady = null; fail(new Error('gis')); };
-    document.head.appendChild(sc);
-  });
-}
-async function googleButton(el, clientId, onCredential) {
-  el.innerHTML = '<span class="spin"></span>';
-  try {
-    const g = await loadGis();
-    g.accounts.id.initialize({ client_id: clientId, callback: r => onCredential(r.credential), ux_mode: 'popup', auto_select: false });
-    el.innerHTML = '';
-    g.accounts.id.renderButton(el, { theme: 'filled_blue', size: 'large', shape: 'pill', text: 'signin_with', locale: 'ur', width: Math.min(320, el.clientWidth || 320) });
-  } catch (e) { el.textContent = 'Google کا بٹن لوڈ نہیں ہو سکا۔ انٹرنیٹ چیک کریں۔'; }
-}
-const showLoginBase = showLogin;
-showLogin = function (msg) {
-  showLoginBase(msg);
-  $('gLogin').hidden = !googleId;
-  $('pwLead').hidden = !!googleId;
-  if (googleId) googleButton($('gBtn'), googleId, async credential => {
-    try {
-      const r = await fetch(base + '/api/drive', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'google', credential }) });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(j.error || 'server');
-      useSession(j); showDrive(); load();
-    } catch (e) { showLoginBase(errText(e)); $('gLogin').hidden = false; $('pwLead').hidden = true; }
-  });
-};
-
-$('login').addEventListener('submit', async ev => {
-  ev.preventDefault();
-  const b = $('loginBtn'); b.disabled = true;
-  key = $('pw').value;
-  try {
-    useSession(await call('POST', { action: 'check' }));
-    $('pw').value = ''; showDrive(); load();
-  } catch (e) {
-    if (e.message === 'setup' || e.message === 'newpass') route(e.message); else showLogin(errText(e));
-  } finally { b.disabled = false; }
-});
-
-$('newpass').addEventListener('submit', async ev => {
-  ev.preventDefault();
-  const p1 = $('np1').value, p2 = $('np2').value;
-  if (p1.length < 4) { showNewPass(ERR.short); return; }
-  if (p1 !== p2) { showNewPass('دونوں پاس ورڈ ایک جیسے نہیں۔'); return; }
-  const b = $('npBtn'); b.disabled = true;
-  try {
-    key = p1;
-    useSession(await call('POST', { action: 'setpass', password: p1 }));
-    $('np1').value = $('np2').value = ''; showDrive(); load();
-    setTimeout(() => offerGoogle(), 600);
-  } catch (e) { showNewPass(errText(e)); }
-  finally { b.disabled = false; }
-});
-
-async function logout() {
-  store.set('driveKey', ''); key = ''; all = [];
-  const j = await findBase(); googleId = j && j.google ? j.google : '';
-  showLogin();
-}
-
-// ---- settings ----
-async function changePassword() {
-  const p1 = await ask('🔑 نیا پاس ورڈ', { input: true, ok: 'آگے', password: true });
-  if (!p1) return;
-  if (p1.length < 4) { showErr(ERR.short); return; }
-  const p2 = await ask('نیا پاس ورڈ دوبارہ لکھیں', { input: true, ok: 'بدلیں', password: true });
-  if (p2 === null) return;
-  if (p1 !== p2) { showErr('دونوں پاس ورڈ ایک جیسے نہیں۔'); return; }
-  try { useSession(await call('POST', { action: 'changepass', password: p1 })); showErr(''); await ask('✓ پاس ورڈ بدل گیا', { ok: 'ٹھیک ہے' }); }
-  catch (e) { showErr(e.message === 'envpass' ? 'پاس ورڈ Vercel کی سیٹنگ (DRIVE_PASSWORD) سے آ رہا ہے، وہیں بدلیں۔' : errText(e)); }
-}
-function sheet(html) {
-  const d = $('dialog'); d.innerHTML = '<div class="card">' + html + '</div>'; d.hidden = false;
-  const close = () => { d.hidden = true; d.innerHTML = ''; };
-  d.onclick = e => { if (e.target === d || e.target.closest('[data-close]')) close(); };
-  return close;
-}
-async function offerGoogle() {
-  if (googleEmail) return;
-  if (await ask('📧 Gmail سے لاگ ان؟', { text: 'چاہیں تو اب Gmail لاگ ان بھی لگا سکتے ہیں، تاکہ پاس ورڈ یاد رکھنے کی ضرورت نہ رہے۔ یہ بعد میں ⚙️ سیٹنگز سے بھی ہو سکتا ہے۔', ok: 'ابھی لگائیں', input: false, cancel: true })) linkGoogle();
-}
-function linkGoogle() {
-  const origin = location.origin;
-  const close = sheet('<b>📧 Gmail سے لاگ ان لگائیں</b>' +
-    '<p class="lead">اس کے لیے Google سے ایک مفت «Client ID» بنانی ہوتی ہے (صرف ایک بار، تقریباً 5 منٹ):</p>' +
-    '<ol class="help">' +
-    '<li><a href="https://console.cloud.google.com/auth/clients" target="_blank" rel="noopener">Google Cloud Console</a> کھولیں (اپنے Gmail سے)۔ پروجیکٹ نہ ہو تو نیا بنائیں۔</li>' +
-    '<li>اگر «Get started» آئے: ایپ کا نام <b>mydata</b> لکھیں، اپنا Gmail دیں، <b>External</b> چنیں، اور Create کریں۔</li>' +
-    '<li><b>Create client</b> دبائیں ← Application type: <b>Web application</b>۔</li>' +
-    '<li><b>Authorized JavaScript origins</b> میں یہ ڈالیں: <span class="tag">' + esc(origin) + '</span></li>' +
-    '<li>Create دبائیں اور جو <b>Client ID</b> ملے (آخر میں <span class="tag">.apps.googleusercontent.com</span>) اسے نیچے پیسٹ کریں۔</li>' +
-    '<li><b>Audience</b> میں جا کر <b>Publish app</b> کریں، یا Test users میں اپنا Gmail شامل کریں۔</li>' +
-    '</ol>' +
-    '<input class="field" id="gCid" dir="ltr" placeholder="xxxx.apps.googleusercontent.com" autocomplete="off">' +
-    '<div id="gLink"></div><div class="status err" id="gMsg" hidden></div>' +
-    '<div class="row"><button class="btn ghost" data-close>منسوخ</button></div>');
-  const msg = t => { $('gMsg').textContent = t || ''; $('gMsg').hidden = !t; };
-  $('gCid').oninput = () => {
-    const cid = $('gCid').value.trim(); msg('');
-    if (!/^[\w-]+\.apps\.googleusercontent\.com$/.test(cid)) { $('gLink').innerHTML = ''; return; }
-    googleButton($('gLink'), cid, async credential => {
-      try {
-        const j = await call('POST', { action: 'linkgoogle', clientId: cid, credential });
-        googleEmail = j.email; close();
-        await ask('✓ Gmail لاگ ان لگ گیا', { text: 'اب ' + j.email + ' سے لاگ ان ہو سکے گا۔ پاس ورڈ بھی بیک اپ کے طور پر چلتا رہے گا۔', ok: 'ٹھیک ہے' });
-      } catch (e) { msg(errText(e)); }
-    });
-  };
-}
-
-// ---- data: the whole tree comes in one call, then Home / Drive / Media are built here ----
-let all = [];            // files: {path,name,dir,url,size,uploadedAt}
-let folderSet = new Set(['']);
-let tab = 'drive';
-let sortBy = store.get('sortBy') || 'date';
-let viewMode = store.get('viewMode') || 'list';
-async function load() {
-  showErr('');
-  if (!all.length) $('list').innerHTML = '<div class="empty"><span class="spin"></span></div>';
-  try {
-    const j = await call('GET', null, '?all=1');
-    all = []; folderSet = new Set(['']);
-    for (const it of j.items) {
-      const parts = it.path.split('/'); let acc = '';
-      for (let i = 0; i < parts.length - 1; i++) { acc += parts[i] + '/'; folderSet.add(acc); }
-      if (it.path.endsWith('/')) continue;
-      const cut = it.path.lastIndexOf('/') + 1;
-      all.push({ ...it, name: it.path.slice(cut), dir: it.path.slice(0, cut) });
-    }
-    if (path && !folderSet.has(path)) path = '';
-    render();
-  } catch (e) {
-    if (e.message === 'auth') { store.set('driveKey', ''); if (e.info && e.info.google) googleId = e.info.google; showLogin(ERR.auth); return; }
-    if (e.message === 'setup' || e.message === 'newpass') { route(e.message); return; }
-    $('list').innerHTML = ''; showErr(errText(e));
-  }
-}
-const subFolders = dir => [...folderSet].filter(f => f !== dir && f.startsWith(dir) && !f.slice(dir.length, -1).includes('/'));
-const filesIn = dir => all.filter(f => f.dir === dir);
-const folderName = f => f.slice(0, -1).split('/').pop();
-function sorted(list, isFolder) {
-  const by = {
-    name: (a, b) => (isFolder ? folderName(a) : NICE(a.name)).localeCompare(isFolder ? folderName(b) : NICE(b.name)),
-    date: (a, b) => isFolder ? folderName(a).localeCompare(folderName(b)) : String(b.uploadedAt).localeCompare(String(a.uploadedAt)),
-    size: (a, b) => isFolder ? folderName(a).localeCompare(folderName(b)) : (b.size || 0) - (a.size || 0)
-  };
-  return [...list].sort(by[sortBy] || by.date);
-}
-
-// Each folder gets its own #/address, so the phone's Back button goes up a folder.
-const hashPath = () => decodeURIComponent((location.hash || '').replace(/^#\/?/, ''));
-function go(p) {
-  $('q').value = ''; setTab('drive', true);
-  if (p) { location.hash = '#/' + encodeURIComponent(p); return; }   // hashchange renders it
-  history.pushState(null, '', location.pathname + location.search); path = ''; render();
-}
-window.addEventListener('hashchange', () => { const p = hashPath(); if (p !== path) { path = p; tab = 'drive'; render(); } });
-
-function setTab(t, quiet) {
-  tab = t;
-  for (const b of $('bnav').children) b.toggleAttribute('aria-current', b.dataset.tab === t);
-  if (!quiet) render();
-  window.scrollTo(0, 0);
-}
-$('bnav').onclick = e => { const b = e.target.closest('button'); if (b) { $('q').value = ''; setTab(b.dataset.tab); } };
-
-function crumbs() {
-  const parts = path.split('/').filter(Boolean);
-  let h = '<button data-p=""' + (parts.length ? '' : ' aria-current="page"') + '>📁 ڈرائیو</button>';
-  parts.forEach((p, i) => {
-    const to = parts.slice(0, i + 1).join('/') + '/';
-    h += '<span class="sep">‹</span><button data-p="' + esc(to) + '"' + (i === parts.length - 1 ? ' aria-current="page"' : '') + '>' + esc(p) + '</button>';
-  });
-  $('crumbs').innerHTML = h;
-}
-$('crumbs').onclick = e => { const b = e.target.closest('button'); if (b) go(b.dataset.p); };
-
-// ---- item markup ----
-function thumbIcon(f) {
-  const t = typeOf(f.name);
-  if (t === 'image') return '<span class="ic"><img loading="lazy" src="' + esc(f.url) + '" alt=""></span>';
-  return '<span class="ic">' + ICON[t] + '</span>';
-}
-function folderSub(f) {
-  const nf = subFolders(f).length, nfi = filesIn(f).length;
-  if (!nf && !nfi) return 'خالی';
-  return [nf ? nf + ' فولڈر' : '', nfi ? nfi + ' فائلیں' : ''].filter(Boolean).join(' · ');
-}
-function rowFolder(f) {
-  return '<div class="rowi"><button class="main" data-folder="' + esc(f) + '"><span class="ic fold">📁</span><span class="tx"><b dir="auto">' + esc(folderName(f)) + '</b><small>' + folderSub(f) + '</small></span></button>' +
-    '<button class="more" data-more-folder="' + esc(f) + '" aria-label="مزید">⋮</button></div>';
-}
-function rowFile(f, showDir) {
-  return '<div class="rowi"><button class="main" data-file="' + esc(f.path) + '">' + thumbIcon(f) + '<span class="tx"><b dir="auto">' + esc(NICE(f.name)) + '</b><small><bdi>' + size(f.size || 0) + '</bdi> · ' + when(f.uploadedAt) +
-    (showDir && f.dir ? ' · 📁 ' + esc(f.dir.slice(0, -1)) : '') + '</small></span></button>' +
-    '<button class="more" data-more="' + esc(f.path) + '" aria-label="مزید">⋮</button></div>';
-}
-function cardFile(f) {
-  const t = typeOf(f.name), nm = NICE(f.name);
-  let th = ICON[t];
-  if (t === 'image') th = '<img loading="lazy" src="' + esc(f.url) + '" alt="">';
-  else if (t === 'video') th = '<video preload="metadata" muted playsinline src="' + esc(f.url) + '#t=0.5"></video><span class="badge">▶ ' + esc(ext(f.name).toUpperCase()) + '</span>';
-  else th += '<span class="badge">' + esc(ext(f.name).toUpperCase() || '—') + '</span>';
-  return '<div class="file"><button class="main" data-file="' + esc(f.path) + '" style="display:flex;flex-direction:column;width:100%;padding:0"><span class="thumb">' + th + '</span><span class="meta"><span class="nm" dir="auto">' + esc(nm) + '</span><span class="sz"><bdi>' + size(f.size || 0) + '</bdi> · ' + when(f.uploadedAt) + '</span></span></button>' +
-    '<button class="more" data-more="' + esc(f.path) + '" aria-label="مزید">⋮</button></div>';
-}
-function fileList(files, showDir) {
-  if (viewMode === 'grid') return '<div class="grid">' + files.map(cardFile).join('') + '</div>';
-  return '<div class="rows">' + files.map(f => rowFile(f, showDir)).join('') + '</div>';
-}
-function mixed(folders, files, showDir) {
-  if (viewMode === 'grid') return (folders.length ? '<div class="rows">' + folders.map(rowFolder).join('') + '</div>' : '') + (files.length ? fileList(files, showDir) : '');
-  return folders.length || files.length ? '<div class="rows">' + folders.map(rowFolder).join('') + files.map(f => rowFile(f, showDir)).join('') + '</div>' : '';
-}
-function gallery(files) {
-  return '<div class="gallery">' + files.map(f => typeOf(f.name) === 'image'
-    ? '<button data-file="' + esc(f.path) + '"><img loading="lazy" src="' + esc(f.url) + '" alt=""></button>'
-    : '<button data-file="' + esc(f.path) + '"><video preload="metadata" muted playsinline src="' + esc(f.url) + '#t=0.5"></video><span class="play">▶</span></button>').join('') + '</div>';
-}
-
-// ---- screens inside the drive ----
-const KINDS = [['image', '🖼️', 'تصویریں'], ['video', '🎬', 'ویڈیوز'], ['pdf', '📕', 'PDF'], ['audio', '🎵', 'آڈیو'], ['other', '📄', 'دیگر']];
-let kindFilter = '';
-function render() {
-  const q = $('q').value.trim().toLowerCase();
-  $('crumbs').hidden = !(tab === 'drive' && !q);
-  $('drive').querySelector('.tools').hidden = tab === 'menu';
-  $('fab').hidden = !(tab === 'drive' || tab === 'home');
-  $('viewBtn').textContent = viewMode === 'grid' ? '☰' : '▦';
-  let h = '';
-  if (q) {                                   // search everything
-    const fo = [...folderSet].filter(f => f && folderName(f).toLowerCase().includes(q));
-    const fi = sorted(all.filter(f => NICE(f.name).toLowerCase().includes(q)));
-    h += mixed(sorted(fo, true), fi, true);
-    if (!h) h = '<div class="empty">کچھ نہیں ملا۔</div>';
-  } else if (tab === 'home') {
-    const total = all.reduce((a, f) => a + (f.size || 0), 0);
-    h += '<div class="usage"><b>☁️ آپ کا اسٹوریج</b><span class="lead"><bdi>' + size(total) + '</bdi> استعمال ہوا · ' + all.length + ' فائلیں · ' + (folderSet.size - 1) + ' فولڈر</span></div>';
-    h += '<div class="stats">' + KINDS.map(([k, ic, label]) => {
-      const list = all.filter(f => typeOf(f.name) === k);
-      return '<button class="stat" data-kind="' + k + '"' + (kindFilter === k ? ' style="border-color:var(--accent)"' : '') + '><span class="ic">' + ic + '</span><span><b>' + label + '</b><small>' + list.length + ' · <bdi>' + size(list.reduce((a, f) => a + (f.size || 0), 0)) + '</bdi></small></span></button>';
-    }).join('') + '</div>';
-    if (kindFilter) {
-      const list = sorted(all.filter(f => typeOf(f.name) === kindFilter));
-      const label = KINDS.find(k => k[0] === kindFilter)[2];
-      h += '<div class="h2">' + label + ' (' + list.length + ') <button class="btn ghost" data-kind="" style="padding:2px 12px;font-size:.8rem">✕ سب</button></div>';
-      h += list.length ? fileList(list, true) : '<div class="empty">ابھی کوئی نہیں۔</div>';
-    } else {
-      const recent = [...all].sort((a, b) => String(b.uploadedAt).localeCompare(String(a.uploadedAt))).slice(0, 15);
-      h += '<div class="h2">🕘 حالیہ فائلیں</div>';
-      h += recent.length ? fileList(recent, true) : '<div class="empty">ابھی کوئی فائل نہیں۔<br>نیچے <b>+</b> دبا کر پہلی فائل اپ لوڈ کریں۔</div>';
-    }
-  } else if (tab === 'media') {
-    const media = all.filter(f => ['image', 'video'].includes(typeOf(f.name))).sort((a, b) => String(b.uploadedAt).localeCompare(String(a.uploadedAt)));
-    if (!media.length) h = '<div class="empty">ابھی کوئی تصویر یا ویڈیو نہیں۔</div>';
-    else {
-      const groups = new Map();
-      for (const f of media) { let k = ''; try { k = new Date(f.uploadedAt).toLocaleDateString('ur-PK', { month: 'long', year: 'numeric' }); } catch (e) {} if (!groups.has(k)) groups.set(k, []); groups.get(k).push(f); }
-      for (const [k, list] of groups) h += '<div class="h2">' + esc(k) + ' <small style="color:var(--muted);font-weight:400">(' + list.length + ')</small></div>' + gallery(list);
-    }
-  } else if (tab === 'menu') {
-    const total = all.reduce((a, f) => a + (f.size || 0), 0);
-    h += '<div class="acct"><span class="av">' + (googleEmail ? esc(googleEmail[0].toUpperCase()) : '🔒') + '</span><span class="tx" style="display:flex;flex-direction:column;min-width:0"><b>میرا اکاؤنٹ</b><small style="color:var(--muted)" dir="auto">' + (googleEmail ? esc(googleEmail) : 'پاس ورڈ سے لاگ ان') + '</small></span></div>';
-    h += '<div class="menu">' +
-      '<button data-act="usage">📊 اسٹوریج<small><bdi>' + size(total) + '</bdi> استعمال · ' + all.length + ' فائلیں</small></button>' +
-      '<button data-act="pass">🔑 پاس ورڈ بدلیں<small>نیا پاس ورڈ رکھیں</small></button>' +
-      (googleEmail ? '<button data-act="ungoogle">📧 Gmail لاگ ان ہٹائیں<small dir="ltr">' + esc(googleEmail) + '</small></button>'
-                   : '<button data-act="google">📧 Gmail سے لاگ ان لگائیں<small>پاس ورڈ کے بغیر، اپنے Google اکاؤنٹ سے کھولیں</small></button>') +
-      '<button data-act="refresh">⟳ تازہ کریں<small>فائلوں کی فہرست دوبارہ لائیں</small></button>' +
-      '<button data-act="logout" style="color:var(--danger)">🚪 لاگ آؤٹ<small>اس فون سے باہر نکلیں</small></button>' +
-      '</div>';
-  } else {                                   // drive
-    crumbs();
-    const fo = sorted(subFolders(path), true), fi = sorted(filesIn(path));
-    h += mixed(fo, fi, false);
-    if (!h) h = '<div class="empty">' + (path ? 'یہ فولڈر خالی ہے۔' : 'ابھی کچھ نہیں۔') + '<br>نیچے <b>+</b> دبا کر فائلیں اپ لوڈ کریں یا نیا فولڈر بنائیں۔</div>';
-  }
-  $('list').innerHTML = h;
-}
-$('q').oninput = render;
-$('viewBtn').onclick = () => { viewMode = viewMode === 'grid' ? 'list' : 'grid'; store.set('viewMode', viewMode); render(); };
-$('sortBtn').onclick = () => {
-  const close = sheet('<b>⇅ ترتیب</b><div class="menu">' +
-    [['date', '🕘 تاریخ (نئی پہلے)'], ['name', '🔤 نام'], ['size', '📦 سائز (بڑی پہلے)']].map(([k, l]) => '<button data-sort="' + k + '">' + l + (sortBy === k ? ' ✓' : '') + '</button>').join('') +
-    '</div>');
-  $('dialog').querySelectorAll('[data-sort]').forEach(b => b.onclick = () => { sortBy = b.dataset.sort; store.set('sortBy', sortBy); close(); render(); });
-};
-$('list').onclick = async e => {
-  const k = e.target.closest('[data-kind]'); if (k) { kindFilter = k.dataset.kind === kindFilter ? '' : k.dataset.kind; render(); return; }
-  const mf = e.target.closest('[data-more-folder]'); if (mf) { folderMenu(mf.dataset.moreFolder); return; }
-  const m = e.target.closest('[data-more]'); if (m) { fileMenu(all.find(x => x.path === m.dataset.more)); return; }
-  const f = e.target.closest('[data-folder]'); if (f) { go(f.dataset.folder); return; }
-  const g = e.target.closest('[data-file]'); if (g) { openFile(all.find(x => x.path === g.dataset.file)); return; }
-  const a = e.target.closest('[data-act]'); if (!a) return;
-  const act = a.dataset.act;
-  if (act === 'pass') changePassword();
-  else if (act === 'google') linkGoogle();
-  else if (act === 'ungoogle') {
-    if (!await ask('Gmail لاگ ان ہٹا دیں؟', { text: 'اس کے بعد صرف پاس ورڈ سے لاگ ان ہوگا۔', ok: 'ہٹائیں', danger: true })) return;
-    try { await call('POST', { action: 'unlinkgoogle' }); googleEmail = ''; render(); } catch (err) { showErr(errText(err)); }
-  }
-  else if (act === 'refresh') load();
-  else if (act === 'usage') setTab('home');
-  else if (act === 'logout') logout();
-};
-
-// ---- ⋮ menus ----
-async function shareLink(f) {
-  const nm = NICE(f.name);
-  if (navigator.share) { try { await navigator.share({ title: nm, url: f.url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
-  try { await navigator.clipboard.writeText(f.url); await ask('🔗 لنک کاپی ہو گیا', { text: 'جس کے پاس یہ لنک ہوگا وہ یہ فائل دیکھ اور ڈاؤن لوڈ کر سکے گا۔', ok: 'ٹھیک ہے' }); }
-  catch (e) { await ask('🔗 فائل کا لنک', { text: f.url, ok: 'ٹھیک ہے' }); }
-}
-function fileMenu(f) {
-  if (!f) return;
-  const close = sheet('<div class="sheet-h">' + thumbIcon(f).replace('class="ic"', 'class="ic" style="width:44px;height:44px;border-radius:10px;background:var(--soft);display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none"') +
-    '<span style="display:flex;flex-direction:column;min-width:0"><b dir="auto">' + esc(NICE(f.name)) + '</b><small style="color:var(--muted)"><bdi>' + size(f.size || 0) + '</bdi> · ' + when(f.uploadedAt) + (f.dir ? ' · 📁 ' + esc(f.dir.slice(0, -1)) : '') + '</small></span></div>' +
-    '<div class="menu">' +
-    '<button data-m="open">👁️ کھولیں</button>' +
-    '<button data-m="dl">⬇️ ڈاؤن لوڈ</button>' +
-    '<button data-m="share">🔗 لنک شیئر کریں<small>جس کے پاس لنک ہو وہ فائل دیکھ سکے گا</small></button>' +
-    '<button data-m="rename">✏️ نام بدلیں</button>' +
-    (f.dir && tab !== 'drive' ? '<button data-m="folder">📁 فولڈر میں دیکھیں</button>' : '') +
-    '<button data-m="del" style="color:var(--danger)">🗑️ حذف کریں</button>' +
-    '</div>');
-  $('dialog').querySelectorAll('[data-m]').forEach(b => b.onclick = async () => {
-    const m = b.dataset.m; close();
-    if (m === 'open') openFile(f);
-    else if (m === 'dl') { const a = document.createElement('a'); a.href = dl(f.url); a.download = NICE(f.name); document.body.appendChild(a); a.click(); a.remove(); }
-    else if (m === 'share') shareLink(f);
-    else if (m === 'folder') go(f.dir);
-    else if (m === 'del') removeItem(f.path, false);
-    else if (m === 'rename') {
-      const name = await ask('✏️ نیا نام', { input: true, ok: 'محفوظ کریں', value: NICE(f.name) });
-      if (!name || name === NICE(f.name)) return;
-      if (/[\/\\]/.test(name)) { showErr(ERR['bad.path']); return; }
-      try { await call('POST', { action: 'rename', path: f.path, name: ext(name) || !ext(f.name) ? name : name + '.' + ext(f.name) }); load(); }
-      catch (e) { showErr(errText(e)); }
-    }
-  });
-}
-function folderMenu(p) {
-  const close = sheet('<div class="sheet-h"><span class="ic fold" style="width:44px;height:44px;border-radius:10px;background:#FCE9B8;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex:none">📁</span><span style="display:flex;flex-direction:column;min-width:0"><b dir="auto">' + esc(folderName(p)) + '</b><small style="color:var(--muted)">' + folderSub(p) + '</small></span></div>' +
-    '<div class="menu"><button data-m="open">📂 کھولیں</button><button data-m="del" style="color:var(--danger)">🗑️ فولڈر حذف کریں<small>اندر کی تمام فائلیں بھی</small></button></div>');
-  $('dialog').querySelectorAll('[data-m]').forEach(b => b.onclick = () => { close(); b.dataset.m === 'open' ? go(p) : removeItem(p, true); });
-}
-
-// ---- viewer ----
-function openFile(f) {
-  if (!f) return;
-  const t = typeOf(f.name), nm = NICE(f.name), v = $('viewer');
-  let body;
-  if (t === 'image') body = '<img src="' + esc(f.url) + '" alt="' + esc(nm) + '">';
-  else if (t === 'video') body = '<video src="' + esc(f.url) + '" controls autoplay playsinline></video>';
-  else if (t === 'audio') body = '<div class="other"><span class="big">🎵</span><audio src="' + esc(f.url) + '" controls autoplay></audio></div>';
-  else if (t === 'pdf' && !/Android|iPhone|iPad/i.test(navigator.userAgent)) body = '<iframe src="' + esc(f.url) + '" title="' + esc(nm) + '"></iframe>';
-  else body = '<div class="other"><span class="big">' + ICON[t] + '</span><div dir="auto">' + esc(nm) + '</div><div>' + size(f.size || 0) + '</div><a class="btn" href="' + esc(f.url) + '" target="_blank" rel="noopener">کھولیں</a></div>';
-  v.innerHTML = '<div class="vbar"><button id="vClose" aria-label="بند کریں">✕</button><span class="t" dir="auto">' + esc(nm) + '</span>' +
-    '<a href="' + esc(dl(f.url)) + '" download="' + esc(nm) + '">⬇️ ڈاؤن لوڈ</a>' +
-    (navigator.share ? '<button id="vShare">↗️ شیئر</button>' : '<button id="vCopy">🔗 لنک</button>') +
-    '<button id="vDel">🗑️</button></div><div class="vbody">' + body + '</div>';
-  v.hidden = false;
-  history.pushState({ viewer: 1 }, '');
-  $('vClose').onclick = () => history.back();
-  $('vDel').onclick = () => removeItem(f.path, false);
-  if ($('vShare')) $('vShare').onclick = () => navigator.share({ title: nm, url: f.url }).catch(() => {});
-  if ($('vCopy')) $('vCopy').onclick = async () => { try { await navigator.clipboard.writeText(f.url); $('vCopy').textContent = '✓ کاپی'; } catch (e) {} };
-}
-function closeViewer() { const v = $('viewer'); v.hidden = true; v.innerHTML = ''; }
-window.addEventListener('popstate', () => {
-  if (!$('viewer').hidden) closeViewer();
-  else { const p = hashPath(); if (p !== path) { path = p; render(); } }
-});
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('viewer').hidden) history.back(); });
-
-// ---- dialogs ----
-function ask(title, opts) {
-  return new Promise(done => {
-    const d = $('dialog'); d.onclick = null;
-    d.innerHTML = '<form class="card"><b>' + esc(title) + '</b>' + (opts.text ? '<p class="lead">' + esc(opts.text) + '</p>' : '') +
-      (opts.input ? '<input class="field" id="dIn" required maxlength="100" autocomplete="off"' + (opts.password ? ' type="password"' : '') + '>' : '') +
-      '<div class="row"><button class="btn' + (opts.danger ? ' danger' : '') + '" type="submit">' + esc(opts.ok || 'ٹھیک ہے') + '</button>' + (opts.input || opts.danger || opts.cancel ? '<button class="btn ghost" type="button" id="dNo">' + (opts.cancel ? 'بعد میں' : 'منسوخ') + '</button>' : '') + '</div></form>';
-    d.hidden = false;
-    const close = v => { d.hidden = true; d.innerHTML = ''; done(v); };
-    d.querySelector('form').onsubmit = e => { e.preventDefault(); close(opts.input ? $('dIn').value.trim() : true); };
-    if ($('dNo')) $('dNo').onclick = () => close(null);
-    if (opts.input) { if (opts.value) $('dIn').value = opts.value; $('dIn').focus(); }
-  });
-}
-async function newFolder() {
-  toggleFab(false);
-  const name = await ask('📁 نئے فولڈر کا نام', { input: true, ok: 'بنائیں' });
-  if (!name) return;
-  if (/[\/\\]/.test(name)) { showErr(ERR['bad.path']); return; }
-  try { await call('POST', { action: 'mkdir', path: path + name + '/' }); load(); }
-  catch (e) { showErr(errText(e)); }
-}
-async function removeItem(p, folder) {
-  const ok = await ask(folder ? 'کیا یہ پورا فولڈر حذف کر دیں؟' : 'کیا یہ فائل حذف کر دیں؟',
-    { text: folder ? 'اس کے اندر کی تمام فائلیں اور فولڈر بھی ہمیشہ کے لیے مٹ جائیں گے۔' : 'یہ واپس نہیں آئے گی۔', ok: 'حذف کریں', danger: true });
-  if (!ok) return;
-  try {
-    await call('POST', { action: 'delete', path: p });
-    if (!$('viewer').hidden) history.back();
-    if (folder && path.startsWith(p)) path = p.split('/').filter(Boolean).slice(0, -1).map(s => s + '/').join('');
-    load();
-  } catch (e) { showErr(errText(e)); }
-}
-
-// ---- uploads (browser -> Vercel Blob directly, so big videos work) ----
-let blobClient = null;
-const safeName = n => (n || 'file').replace(/[\/\\\u0000-\u001f]/g, '_').trim().slice(0, 110) || 'file';
-async function uploadFiles(list) {
-  toggleFab(false);
-  if (!list || !list.length) return;
-  const box = $('uploads'); box.hidden = false;
-  try { blobClient = blobClient || await import(BLOB_CLIENT); }
-  catch (e) { showErr('اپ لوڈ کا ٹول لوڈ نہیں ہو سکا۔ انٹرنیٹ چیک کریں۔'); return; }
-  const target = path;
-  const rows = [...list].map(file => {
-    const el = document.createElement('div'); el.className = 'up';
-    el.innerHTML = '<div class="n" dir="auto">' + esc(file.name) + ' — ' + size(file.size) + '</div><div class="bar"><i></i></div>';
-    box.appendChild(el); return { file, el };
-  });
-  // Two at a time keeps phones responsive on slow connections.
-  let next = 0;
-  async function worker() {
-    while (next < rows.length) {
-      const { file, el } = rows[next++];
-      try {
-        await blobClient.upload(ROOT + target + safeName(file.name), file, {
-          access: 'public', handleUploadUrl: base + '/api/drive', clientPayload: key,
-          contentType: file.type || undefined, multipart: file.size > 50 * 1048576,
-          onUploadProgress: p => { el.querySelector('i').style.width = p.percentage + '%'; }
-        });
-        el.classList.add('done'); el.querySelector('i').style.width = '100%';
-      } catch (e) {
-        el.classList.add('fail');
-        el.querySelector('.n').textContent += ' — ناکام: ' + (/auth/.test(e && e.message) ? ERR.auth : (e && e.message || '').slice(0, 60));
+// Same look as the CSS filter, done by hand for browsers whose canvas ignores ctx.filter.
+function cssByHand(c, css) {
+  if (css === 'none') return;
+  const x = c.getContext('2d'), d = x.getImageData(0, 0, c.width, c.height), p = d.data;
+  const ops = [...css.matchAll(/([a-z-]+)\(([-\d.]+)(deg)?\)/g)].map(m => [m[1], parseFloat(m[2])]);
+  for (let i = 0; i < p.length; i += 4) {
+    let r = p[i], g = p[i + 1], b = p[i + 2];
+    for (const [op, v] of ops) {
+      if (op === 'brightness') { r *= v; g *= v; b *= v; }
+      else if (op === 'contrast') { r = (r - 128) * v + 128; g = (g - 128) * v + 128; b = (b - 128) * v + 128; }
+      else if (op === 'saturate' || op === 'grayscale') {
+        const s = op === 'saturate' ? v : 1 - v, l = .2126 * r + .7152 * g + .0722 * b;
+        r = l + (r - l) * s; g = l + (g - l) * s; b = l + (b - l) * s;
+      } else if (op === 'sepia') {
+        const sr = .393 * r + .769 * g + .189 * b, sg = .349 * r + .686 * g + .168 * b, sb = .272 * r + .534 * g + .131 * b;
+        r += (sr - r) * v; g += (sg - g) * v; b += (sb - b) * v;
+      } else if (op === 'hue-rotate') {
+        const a = v * Math.PI / 180, co = Math.cos(a), si = Math.sin(a);
+        const nr = r * (.213 + co * .787 - si * .213) + g * (.715 - co * .715 - si * .715) + b * (.072 - co * .072 + si * .928);
+        const ng = r * (.213 - co * .213 + si * .143) + g * (.715 + co * .285 + si * .14) + b * (.072 - co * .072 - si * .283);
+        const nb = r * (.213 - co * .213 - si * .787) + g * (.715 - co * .715 + si * .715) + b * (.072 + co * .928 + si * .072);
+        r = nr; g = ng; b = nb;
       }
     }
+    p[i] = r; p[i + 1] = g; p[i + 2] = b;
   }
-  await Promise.all([worker(), worker()]);
-  load();
-  setTimeout(() => { for (const r of rows) if (r.el.classList.contains('done')) r.el.remove(); if (!box.children.length) box.hidden = true; }, 3000);
+  x.putImageData(d, 0, 0);
 }
-$('picker').onchange = e => { const files = [...e.target.files]; e.target.value = ''; uploadFiles(files); };
+function sharpen(c, amt) {
+  const b = blurred(c, 2.2), x = c.getContext('2d');
+  const o = x.getImageData(0, 0, c.width, c.height), bl = b.getContext('2d').getImageData(0, 0, c.width, c.height).data, p = o.data;
+  for (let i = 0; i < p.length; i += 4) {
+    p[i] += (p[i] - bl[i]) * amt; p[i + 1] += (p[i + 1] - bl[i + 1]) * amt; p[i + 2] += (p[i + 2] - bl[i + 2]) * amt;
+  }
+  x.putImageData(o, 0, 0);
+}
+// Skin smoothing: blend toward a blurred copy only on skin tones and only where there is no edge,
+// so eyes, hair and outlines stay sharp.
+function smooth(c, amt) {
+  const f = Math.max(4, Math.max(c.width, c.height) / 160);
+  const b = blurred(c, f), x = c.getContext('2d');
+  const o = x.getImageData(0, 0, c.width, c.height), bl = b.getContext('2d').getImageData(0, 0, c.width, c.height).data, p = o.data;
+  for (let i = 0; i < p.length; i += 4) {
+    const r = p[i], g = p[i + 1], bb = p[i + 2];
+    const skin = r > 80 && g > 35 && bb > 20 && r > g && r > bb && r - Math.min(g, bb) > 12 && Math.abs(r - g) > 10;
+    if (!skin) continue;
+    const diff = Math.abs(r - bl[i]) + Math.abs(g - bl[i + 1]) + Math.abs(bb - bl[i + 2]);
+    if (diff > 70) continue;
+    const w = amt * (1 - diff / 70);
+    p[i] = r + (bl[i] - r) * w + 3 * w; p[i + 1] = g + (bl[i + 1] - g) * w + 2 * w; p[i + 2] = bb + (bl[i + 2] - bb) * w + 2 * w;
+  }
+  x.putImageData(o, 0, 0);
+}
+function bloom(c, amt) {
+  const b = blurred(c, Math.max(8, Math.max(c.width, c.height) / 60)), x = c.getContext('2d');
+  x.save(); x.globalCompositeOperation = 'screen'; x.globalAlpha = amt; x.drawImage(b, 0, 0); x.restore();
+}
+function vignette(c, amt) {
+  const x = c.getContext('2d'), w = c.width, h = c.height;
+  const g = x.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .35, w / 2, h / 2, Math.hypot(w, h) / 2);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,' + amt + ')');
+  x.fillStyle = g; x.fillRect(0, 0, w, h);
+}
+function grain(c, amt) {
+  const x = c.getContext('2d'), d = x.getImageData(0, 0, c.width, c.height), p = d.data;
+  for (let i = 0; i < p.length; i += 4) { const n = (Math.random() - .5) * amt; p[i] += n; p[i + 1] += n; p[i + 2] += n; }
+  x.putImageData(d, 0, 0);
+}
+// Draws a source (photo, frame) through a filter at the given size.
+function render(src, fid, mirror, w, h, crop) {
+  const f = F(fid), c = mk(w, h), x = c.getContext('2d');
+  x.imageSmoothingQuality = 'high';
+  if (ctxFilterOK) x.filter = f.css;
+  if (mirror) { x.translate(c.width, 0); x.scale(-1, 1); }
+  const sw = src.width || src.videoWidth, sh = src.height || src.videoHeight;
+  const cr = crop || { x: 0, y: 0, w: sw, h: sh };
+  x.drawImage(src, cr.x, cr.y, cr.w, cr.h, 0, 0, c.width, c.height);
+  x.setTransform(1, 0, 0, 1, 0, 0); x.filter = 'none';
+  if (!ctxFilterOK) cssByHand(c, f.css);
+  if (f.smooth) smooth(c, f.smooth);
+  if (f.bloom) bloom(c, f.bloom);
+  if (f.sharpen) sharpen(c, f.sharpen * Math.min(1, c.width / 1500 + .3));
+  if (f.vignette) vignette(c, f.vignette);
+  if (f.grain) grain(c, f.grain);
+  return c;
+}
 
-// ---- floating button ----
-function toggleFab(open) { $('fabOpts').hidden = !open; $('fabMain').setAttribute('aria-expanded', String(open)); $('fabMain').textContent = open ? '×' : '+'; }
-$('fabMain').onclick = () => toggleFab($('fabOpts').hidden);
-$('optUpload').onclick = () => $('picker').click();
-$('optFolder').onclick = newFolder;
+// ============ camera ============
+let stream = null, track = null, caps = {}, imageCapture = null;
+let facing = store.get('facing', 'environment');
+let flashMode = 'off';                 // off | on | auto
+let timerSec = 0;
+let mirrorSelfie = store.get('mirror', true);
+let zoom = 1, digitalZoom = 1;
+const v = $('v');
 
-// Drag & drop on computers.
-document.addEventListener('dragover', e => { if ($('drive').hidden) return; e.preventDefault(); document.body.classList.add('drop'); });
-document.addEventListener('dragleave', e => { if (!e.relatedTarget) document.body.classList.remove('drop'); });
-document.addEventListener('drop', e => { document.body.classList.remove('drop'); if ($('drive').hidden) return; e.preventDefault(); uploadFiles([...e.dataTransfer.files]); });
+async function startCam() {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  const want = { facingMode: { ideal: facing }, width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 30 } };
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: want, audio: false });
+  } catch (e) {
+    try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false }); }
+    catch (e2) { permissionHelp(e2); return false; }
+  }
+  track = stream.getVideoTracks()[0];
+  caps = (track.getCapabilities && track.getCapabilities()) || {};
+  imageCapture = ('ImageCapture' in window) ? new ImageCapture(track) : null;
+  v.srcObject = stream;
+  try { await v.play(); } catch (e) {}
+  const s = track.getSettings ? track.getSettings() : {};
+  if (s.facingMode) facing = s.facingMode === 'user' ? 'user' : 'environment';
+  zoom = s.zoom || 1; digitalZoom = 1;
+  if (caps.focusMode && caps.focusMode.includes('continuous')) track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
+  applyPreview();
+  return true;
+}
+function permissionHelp(e) {
+  show('perm');
+  $('permText').innerHTML = e && /NotAllowed|Permission/i.test(e.name + e.message)
+    ? 'کیمرہ کی اجازت نہیں ملی۔ براؤزر کے ایڈریس بار میں 🔒 پر دبائیں، <b>Camera → Allow</b> کریں، پھر دوبارہ کوشش کریں۔'
+    : 'کیمرہ نہیں کھل سکا۔ کوئی اور ایپ کیمرہ استعمال تو نہیں کر رہی؟ دوبارہ کوشش کریں۔ آپ فون کی تصویر بھی ایڈٹ کر سکتے ہیں۔';
+  $('startBtn').textContent = '🔄 دوبارہ کوشش کریں';
+}
+function applyPreview() {
+  const f = F(filterId);
+  v.style.filter = f.css === 'none' ? '' : f.css + (f.bloom ? ' brightness(1.04)' : '');
+  $('vig').style.opacity = f.vignette ? Math.min(1, f.vignette * 1.6) : 0;
+  const mirror = facing === 'user' && mirrorSelfie;
+  v.style.transform = (mirror ? 'scaleX(-1) ' : '') + (digitalZoom > 1 ? 'scale(' + digitalZoom + ')' : '');
+  $('fname').textContent = f.name;
+  $('mirrorBtn').hidden = facing !== 'user';
+  $('mirrorBtn').classList.toggle('on', mirrorSelfie);
+  const fl = { off: 'بند', on: 'آن', auto: 'آٹو' }[flashMode];
+  $('flashLbl').textContent = fl; $('flashBtn').classList.toggle('on', flashMode !== 'off');
+  $('timerLbl').textContent = timerSec ? timerSec + 's' : 'بند'; $('timerBtn').classList.toggle('on', !!timerSec);
+}
 
-start();
+// filter strip: each chip shows a small sample picture through its filter
+function sampleImage() {
+  const c = mk(96, 96), x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 96, 96); g.addColorStop(0, '#f6c28b'); g.addColorStop(.5, '#e07a5f'); g.addColorStop(1, '#3d5a80');
+  x.fillStyle = g; x.fillRect(0, 0, 96, 96);
+  x.fillStyle = '#f2cc8f'; x.beginPath(); x.arc(48, 40, 18, 0, 7); x.fill();
+  x.fillStyle = '#81b29a'; x.fillRect(0, 70, 96, 26);
+  return c;
+}
+function buildStrip(el, onPick) {
+  const base = sampleImage();
+  el.innerHTML = '';
+  for (const f of FILTERS) {
+    const b = document.createElement('button'); b.className = 'fchip'; b.dataset.f = f.id; b.title = f.name; b.setAttribute('aria-label', f.name);
+    const s = document.createElement('span'); s.style.backgroundImage = 'url(' + render(base, f.id, false, 96, 96).toDataURL() + ')';
+    b.appendChild(s); el.appendChild(b);
+  }
+  el.onclick = e => { const b = e.target.closest('.fchip'); if (b) { onPick(b.dataset.f); b.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' }); } };
+  let t; el.addEventListener('scroll', () => {
+    clearTimeout(t); t = setTimeout(() => {
+      const mid = el.getBoundingClientRect().left + el.clientWidth / 2;
+      let best = null, bd = 1e9;
+      for (const b of el.children) { const r = b.getBoundingClientRect(), d = Math.abs(r.left + r.width / 2 - mid); if (d < bd) { bd = d; best = b; } }
+      if (best && best.dataset.f !== el.dataset.sel) onPick(best.dataset.f, true);
+    }, 90);
+  }, { passive: true });
+}
+function markStrip(el, id, scroll) {
+  el.dataset.sel = id;
+  for (const b of el.children) b.classList.toggle('sel', b.dataset.f === id);
+  const b = el.querySelector('[data-f="' + id + '"]');
+  if (b && scroll) el.scrollLeft = b.offsetLeft - el.clientWidth / 2 + b.offsetWidth / 2;
+}
+function pickFilter(id) { filterId = id; store.set('filter', id); markStrip($('strip'), id); applyPreview(); }
+
+// ---- buttons ----
+$('flipBtn').onclick = flip;
+async function flip() { facing = facing === 'user' ? 'environment' : 'user'; store.set('facing', facing); await startCam(); }
+$('flashBtn').onclick = () => { flashMode = { off: 'on', on: 'auto', auto: 'off' }[flashMode]; applyPreview(); toast('فلیش: ' + $('flashLbl').textContent); };
+$('timerBtn').onclick = () => { timerSec = { 0: 3, 3: 10, 10: 0 }[timerSec]; applyPreview(); };
+$('gridBtn').onclick = () => { const g = $('gridL'); g.hidden = !g.hidden; $('gridBtn').classList.toggle('on', !g.hidden); store.set('grid', !g.hidden); };
+$('mirrorBtn').onclick = () => { mirrorSelfie = !mirrorSelfie; store.set('mirror', mirrorSelfie); applyPreview(); toast(mirrorSelfie ? 'سیلفی آئینے کی طرح' : 'سیلفی سیدھی (جیسے دوسرے دیکھتے ہیں)'); };
+if (store.get('grid', false)) { $('gridL').hidden = false; $('gridBtn').classList.add('on'); }
+
+// ---- tap to focus, double tap to flip, pinch to zoom ----
+const pts = new Map(); let pinch0 = null, lastTap = 0;
+v.parentElement.addEventListener('pointerdown', e => {
+  if (e.target.closest('button,.strip')) return;
+  pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch0 = { d: Math.hypot(a.x - b.x, a.y - b.y), z: caps.zoom ? zoom : digitalZoom }; }
+});
+v.parentElement.addEventListener('pointermove', e => {
+  if (!pts.has(e.pointerId)) return;
+  pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pts.size === 2 && pinch0) {
+    const [a, b] = [...pts.values()], k = Math.hypot(a.x - b.x, a.y - b.y) / pinch0.d;
+    setZoom(pinch0.z * k);
+  }
+});
+v.parentElement.addEventListener('pointerup', e => {
+  if (!pts.has(e.pointerId)) return;
+  const wasPinch = !!pinch0; pts.delete(e.pointerId); if (pts.size < 2) pinch0 = null;
+  if (wasPinch || pts.size) return;
+  const now = Date.now();
+  if (now - lastTap < 300) { lastTap = 0; flip(); return; }
+  lastTap = now;
+  focusAt(e.clientX, e.clientY);
+});
+v.parentElement.addEventListener('pointercancel', e => { pts.delete(e.pointerId); pinch0 = null; });
+let zoomT;
+function setZoom(z) {
+  if (caps.zoom) {
+    zoom = Math.min(caps.zoom.max, Math.max(caps.zoom.min, z));
+    track.applyConstraints({ advanced: [{ zoom }] }).catch(() => {});
+    $('zoomLbl').textContent = zoom.toFixed(1) + '×';
+  } else {
+    digitalZoom = Math.min(5, Math.max(1, z)); applyPreview();
+    $('zoomLbl').textContent = digitalZoom.toFixed(1) + '×';
+  }
+  $('zoomLbl').hidden = false; clearTimeout(zoomT); zoomT = setTimeout(() => $('zoomLbl').hidden = true, 1200);
+}
+function focusAt(x, y) {
+  const ring = document.createElement('div'); ring.className = 'focus'; ring.style.left = x + 'px'; ring.style.top = y + 'px';
+  $('cam').appendChild(ring); setTimeout(() => ring.remove(), 800);
+  if (!track || !caps.focusMode) return;
+  const r = v.getBoundingClientRect();
+  let px = (x - r.left) / r.width, py = (y - r.top) / r.height;
+  if (facing === 'user' && mirrorSelfie) px = 1 - px;
+  const c = { pointsOfInterest: [{ x: px, y: py }] };
+  if (caps.focusMode.includes('single-shot')) c.focusMode = 'single-shot';
+  if (caps.exposureMode && caps.exposureMode.includes('single-shot')) c.exposureMode = 'single-shot';
+  track.applyConstraints({ advanced: [c] }).catch(() => {});
+}
+
+// ---- shutter: tap = photo, hold = video ----
+let holdT = null, recording = false;
+const shutter = $('shutter');
+shutter.addEventListener('pointerdown', e => {
+  e.preventDefault(); shutter.setPointerCapture(e.pointerId);
+  holdT = setTimeout(() => { holdT = null; startRec(); }, 320);
+});
+shutter.addEventListener('pointerup', () => {
+  if (holdT) { clearTimeout(holdT); holdT = null; takePhoto(); }
+  else if (recording) stopRec();
+});
+shutter.addEventListener('pointercancel', () => { if (holdT) { clearTimeout(holdT); holdT = null; } else if (recording) stopRec(); });
+shutter.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => { if (!$('cam').hidden && (e.key === ' ' || e.key === 'Enter' || e.key === 'VolumeUp')) { e.preventDefault(); takePhoto(); } });
+
+async function countdown() {
+  if (!timerSec) return;
+  const c = $('count'); c.hidden = false;
+  for (let i = timerSec; i > 0; i--) { c.textContent = i; await sleep(1000); }
+  c.hidden = true;
+}
+function torch(on) { if (caps.torch) return track.applyConstraints({ advanced: [{ torch: on }] }).catch(() => {}); }
+function isDark() {
+  try {
+    const c = mk(32, 32), x = c.getContext('2d'); x.drawImage(v, 0, 0, 32, 32);
+    const d = x.getImageData(0, 0, 32, 32).data; let s = 0;
+    for (let i = 0; i < d.length; i += 4) s += d[i] * .3 + d[i + 1] * .59 + d[i + 2] * .11;
+    return s / (d.length / 4) < 60;
+  } catch (e) { return false; }
+}
+let shooting = false;
+async function takePhoto() {
+  if (shooting || !track) return; shooting = true;
+  try {
+    await countdown();
+    const useFlash = flashMode === 'on' || (flashMode === 'auto' && isDark());
+    const front = facing === 'user';
+    if (useFlash && front) { $('whiteFlash').style.opacity = 1; await sleep(380); }   // screen as a soft front light
+    let src = null;
+    // Full sensor resolution where the browser allows it (Android Chrome).
+    if (imageCapture && imageCapture.takePhoto) {
+      try {
+        const opts = {};
+        const pc = await withTimeout(imageCapture.getPhotoCapabilities(), 1500).catch(() => null);
+        if (pc && pc.imageWidth && pc.imageWidth.max) { opts.imageWidth = pc.imageWidth.max; opts.imageHeight = pc.imageHeight.max; }
+        if (pc && pc.fillLightMode && !front) opts.fillLightMode = useFlash && pc.fillLightMode.includes('flash') ? 'flash' : (pc.fillLightMode.includes('off') ? 'off' : undefined);
+        if (!opts.fillLightMode) delete opts.fillLightMode;
+        if (useFlash && !front && !(pc && pc.fillLightMode && pc.fillLightMode.includes('flash'))) { await torch(true); await sleep(450); }
+        const blob = await withTimeout(imageCapture.takePhoto(opts), 6000);
+        src = await createImageBitmap(blob);
+      } catch (e) { src = null; }
+    }
+    if (!src) {
+      if (useFlash && !front) { await torch(true); await sleep(450); }
+      src = await grabFrame();
+    }
+    torch(false);
+    $('whiteFlash').style.opacity = 0;
+    const sf = $('shotFlash'); sf.style.transition = 'none'; sf.style.opacity = .85; requestAnimationFrame(() => { sf.style.transition = 'opacity .35s'; sf.style.opacity = 0; });
+    let crop = null;
+    if (digitalZoom > 1) { const w = src.width / digitalZoom, h = src.height / digitalZoom; crop = { x: (src.width - w) / 2, y: (src.height - h) / 2, w, h }; }
+    openEditor(src, front && mirrorSelfie, crop);
+  } catch (e) { toast('تصویر نہیں بن سکی، دوبارہ کوشش کریں'); }
+  finally { shooting = false; $('whiteFlash').style.opacity = 0; }
+}
+async function grabFrame() {
+  if ('createImageBitmap' in window) { try { return await createImageBitmap(v); } catch (e) {} }
+  const c = mk(v.videoWidth, v.videoHeight); c.getContext('2d').drawImage(v, 0, 0); return c;
+}
+
+// ---- video recording (filter is burned in) ----
+let rec = null, recChunks = [], recStart = 0, recRaf = 0, recTick = 0, audioTrack = null;
+const MAX_REC = 60;
+function pickMime() {
+  // H.264 MP4 first: it plays everywhere (WhatsApp, gallery, iPhone).
+  const list = ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4;codecs=avc1', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
+  return list.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
+}
+async function startRec() {
+  if (recording || !track || !window.MediaRecorder) { if (!window.MediaRecorder) toast('اس براؤزر میں ویڈیو ریکارڈنگ نہیں ہو سکتی'); return; }
+  if (!audioTrack) { try { audioTrack = (await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })).getAudioTracks()[0]; } catch (e) { audioTrack = null; } }
+  const vw = v.videoWidth, vh = v.videoHeight, k = Math.min(1, 1920 / Math.max(vw, vh));
+  const c = mk(vw * k, vh * k), x = c.getContext('2d');
+  const f = F(filterId), front = facing === 'user', mirror = front && mirrorSelfie;
+  if (flashMode === 'on' && !front) torch(true);
+  const draw = () => {
+    x.save();
+    if (ctxFilterOK) x.filter = f.css === 'none' ? 'none' : f.css;
+    if (mirror) { x.translate(c.width, 0); x.scale(-1, 1); }
+    if (digitalZoom > 1) { const w = vw / digitalZoom, h = vh / digitalZoom; x.drawImage(v, (vw - w) / 2, (vh - h) / 2, w, h, 0, 0, c.width, c.height); }
+    else x.drawImage(v, 0, 0, c.width, c.height);
+    x.restore();
+    if (f.vignette) vignette(c, f.vignette);
+    recRaf = requestAnimationFrame(draw);
+  };
+  draw();
+  const out = c.captureStream(30);
+  if (audioTrack) out.addTrack(audioTrack);
+  const mime = pickMime();
+  rec = new MediaRecorder(out, { mimeType: mime || undefined, videoBitsPerSecond: 10e6, audioBitsPerSecond: 128e3 });
+  recChunks = [];
+  rec.ondataavailable = e => { if (e.data && e.data.size) recChunks.push(e.data); };
+  rec.onstop = () => {
+    cancelAnimationFrame(recRaf); torch(false);
+    const blob = new Blob(recChunks, { type: rec.mimeType || mime || 'video/webm' });
+    openVideo(blob);
+  };
+  rec.start(500); recording = true; recStart = Date.now();
+  shutter.classList.add('rec'); $('recTime').hidden = false;
+  recTick = setInterval(() => {
+    const s = (Date.now() - recStart) / 1000;
+    $('recTime').textContent = Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+    shutter.style.setProperty('--p', Math.min(100, s / MAX_REC * 100) + '%');
+    if (s >= MAX_REC) stopRec();
+  }, 100);
+}
+function stopRec() {
+  if (!recording) return; recording = false;
+  clearInterval(recTick); shutter.classList.remove('rec'); shutter.style.setProperty('--p', '0%'); $('recTime').hidden = true;
+  try { rec.stop(); } catch (e) {}
+}
+
+// ============ editor ============
+let raw = null, rawMirror = false, rawCrop = null, efilter = 'hd';
+let items = [], strokes = [], drawColor = '#ffffff', drawing = false;
+const box = $('box'), ec = $('ec'), dc = $('dc'), ov = $('ov');
+let dispW = 0, dispH = 0;
+const COLORS = ['#ffffff', '#000000', '#EF4444', '#F59E0B', '#FDE047', '#22C55E', '#06B6D4', '#3B82F6', '#8B5CF6', '#EC4899'];
+
+function srcSize() { return rawCrop ? { w: rawCrop.w, h: rawCrop.h } : { w: raw.width, h: raw.height }; }
+function layoutBox() {
+  const { w, h } = srcSize(), W = innerWidth, H = innerHeight, k = Math.min(W / w, H / h);
+  dispW = Math.round(w * k); dispH = Math.round(h * k);
+  box.style.width = dispW + 'px'; box.style.height = dispH + 'px';
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  ec.width = dc.width = Math.round(dispW * dpr); ec.height = dc.height = Math.round(dispH * dpr);
+}
+function drawPreview() {
+  const c = render(raw, efilter, rawMirror, ec.width, ec.height, rawCrop);
+  ec.getContext('2d').drawImage(c, 0, 0);
+  $('efname').textContent = F(efilter).name;
+}
+function openEditor(src, mirror, crop) {
+  raw = src; rawMirror = !!mirror; rawCrop = crop || null; efilter = filterId;
+  items = []; strokes = []; ov.innerHTML = ''; setDraw(false);
+  show('edit'); layoutBox(); drawPreview(); redrawStrokes();
+  markStrip($('strip2'), efilter, true); $('estrip').hidden = true;
+  history.pushState({ lamha: 'edit' }, '');
+}
+addEventListener('resize', () => { if (!$('edit').hidden && raw) { layoutBox(); drawPreview(); redrawStrokes(); } });
+function closeEditor() { raw = null; show('cam'); }
+$('eClose').onclick = async () => { if ((items.length || strokes.length) && !confirm('یہ تصویر چھوڑ دیں؟')) return; history.back(); };
+addEventListener('popstate', () => {
+  if (!$('edit').hidden) closeEditor();
+  else if (!$('vedit').hidden) closeVideo();
+  else if (!$('viewer').hidden) closeViewer();
+  else if (!$('mem').hidden) show('cam');
+});
+
+// swipe on the photo = next/previous filter
+let sw0 = null;
+box.addEventListener('pointerdown', e => { if (!drawing && e.target === ov) sw0 = { x: e.clientX, t: Date.now() }; });
+box.addEventListener('pointerup', e => {
+  if (!sw0) return; const dx = e.clientX - sw0.x; sw0 = null;
+  if (Math.abs(dx) < 50) return;
+  const i = FILTERS.findIndex(f => f.id === efilter), n = FILTERS.length;
+  setEFilter(FILTERS[(i + (dx < 0 ? 1 : -1) + n) % n].id, true);
+});
+function setEFilter(id, scroll) { efilter = id; markStrip($('strip2'), id, scroll); drawPreview(); toastName(); }
+let tnT; function toastName() { $('efname').textContent = F(efilter).name; }
+$('tFilter').onclick = () => { $('estrip').hidden = !$('estrip').hidden; if (!$('estrip').hidden) markStrip($('strip2'), efilter, true); };
+
+// ---- drawing ----
+function buildPalette(onPick, cur) {
+  const p = $('palette'); p.innerHTML = '';
+  for (const c of COLORS) { const b = document.createElement('button'); b.style.background = c; b.dataset.c = c; if (c === cur) b.className = 'sel'; p.appendChild(b); }
+  p.onclick = e => { const b = e.target.closest('button'); if (!b) return; for (const x of p.children) x.classList.toggle('sel', x === b); onPick(b.dataset.c); };
+}
+function setDraw(on) {
+  drawing = on; box.classList.toggle('drawing', on); $('tDraw').classList.toggle('on', on);
+  $('palette').hidden = !on; $('tUndo').hidden = !on || !strokes.length;
+  if (on) buildPalette(c => drawColor = c, drawColor);
+}
+$('tDraw').onclick = () => setDraw(!drawing);
+$('tUndo').onclick = () => { strokes.pop(); redrawStrokes(); $('tUndo').hidden = !strokes.length; };
+let cur = null;
+dc.addEventListener('pointerdown', e => {
+  if (!drawing) return; dc.setPointerCapture(e.pointerId);
+  const r = dc.getBoundingClientRect();
+  cur = { color: drawColor, w: .012, pts: [[(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]] };
+  strokes.push(cur); redrawStrokes();
+});
+dc.addEventListener('pointermove', e => {
+  if (!cur) return; const r = dc.getBoundingClientRect();
+  cur.pts.push([(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]); redrawStrokes();
+});
+dc.addEventListener('pointerup', () => { cur = null; $('tUndo').hidden = !strokes.length; });
+function paintStrokes(x, W, H) {
+  x.lineCap = x.lineJoin = 'round';
+  for (const s of strokes) {
+    x.strokeStyle = s.color; x.lineWidth = s.w * Math.min(W, H) * 1.0;
+    x.shadowColor = 'rgba(0,0,0,.25)'; x.shadowBlur = x.lineWidth * .4;
+    x.beginPath();
+    s.pts.forEach(([px, py], i) => i ? x.lineTo(px * W, py * H) : x.moveTo(px * W, py * H));
+    if (s.pts.length === 1) x.lineTo(s.pts[0][0] * W + .1, s.pts[0][1] * H);
+    x.stroke();
+  }
+  x.shadowBlur = 0;
+}
+function redrawStrokes() { const x = dc.getContext('2d'); x.clearRect(0, 0, dc.width, dc.height); paintStrokes(x, dc.width, dc.height); }
+
+// ---- text & stickers (draggable, pinch to resize/rotate, drop on bin to delete) ----
+const TSTYLES = [['shadow', 'سایہ'], ['pill', 'پس منظر'], ['outline', 'خاکہ']];
+let tState = { color: '#ffffff', style: 'shadow', editing: null };
+function textColorRow() {
+  const r = $('tColors'); r.innerHTML = '';
+  for (const c of COLORS) { const b = document.createElement('button'); b.className = 'c' + (c === tState.color ? ' sel' : ''); b.style.background = c; b.dataset.c = c; r.appendChild(b); }
+  r.onclick = e => { const b = e.target.closest('button'); if (!b) return; tState.color = b.dataset.c; textColorRow(); styleField(); };
+}
+function styleField() { const f = $('tinField'); f.style.color = tState.style === 'pill' ? contrastOn(tState.color) : tState.color; f.style.background = tState.style === 'pill' ? tState.color : 'transparent'; f.style.borderRadius = '14px'; $('tStyle').textContent = 'انداز: ' + TSTYLES.find(s => s[0] === tState.style)[1]; }
+function contrastOn(c) { const n = parseInt(c.slice(1), 16), l = ((n >> 16) * .3 + (n >> 8 & 255) * .59 + (n & 255) * .11); return l > 150 ? '#111111' : '#ffffff'; }
+$('tText').onclick = () => openTextInput(null);
+function openTextInput(item) {
+  setDraw(false);
+  tState.editing = item;
+  if (item) { tState.color = item.color; tState.style = item.style; }
+  $('tinField').value = item ? item.text : '';
+  textColorRow(); styleField(); $('tin').hidden = false; $('tinField').focus();
+}
+$('tStyle').onclick = () => { const i = TSTYLES.findIndex(s => s[0] === tState.style); tState.style = TSTYLES[(i + 1) % TSTYLES.length][0]; styleField(); };
+$('tDone').onclick = () => {
+  const t = $('tinField').value.trim(); $('tin').hidden = true;
+  const it = tState.editing;
+  if (it) { if (!t) { removeItem(it); return; } Object.assign(it, { text: t, color: tState.color, style: tState.style }); paintItem(it); return; }
+  if (t) addItem({ kind: 'text', text: t, color: tState.color, style: tState.style });
+};
+$('tinField').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('tDone').click(); } });
+const EMOJI = '😀😂🥰😍😎🤩😇🥳😜🤗🤔😴😭😡👍👏🙏💪✌️🤞👌❤️🧡💛💚💙💜🖤🤍💯✨⭐🌟🔥💥🎉🎊🎁🎂🌹🌸🌺🌻🌙☀️🌈☁️⚡❄️🍕🍔🍟🍦🍩☕🧋🍓🍉⚽🏏🏆🎮🎧📷🎵🚗✈️🏠🕌📚💡💎👑🐱🐶🦋🐼🦁🌍🇵🇰'.match(/(\p{Extended_Pictographic}|\p{Regional_Indicator}{2})(️)?/gu);
+$('tSticker').onclick = () => {
+  setDraw(false);
+  const g = $('emojis'); if (!g.children.length) g.innerHTML = EMOJI.map(e => '<button>' + e + '</button>').join('');
+  $('stickers').hidden = false;
+};
+$('emojis').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('stickers').hidden = true; addItem({ kind: 'emoji', text: b.textContent }); };
+$('stage').addEventListener('pointerdown', e => { if (!$('stickers').hidden && !e.target.closest('.sheet')) $('stickers').hidden = true; });
+
+function addItem(it) {
+  Object.assign(it, { x: .5, y: .45, s: 1, r: 0 });
+  it.el = document.createElement('div');
+  it.el.className = 'item' + (it.kind === 'emoji' ? ' emoji' : '');
+  ov.appendChild(it.el); items.push(it); paintItem(it); bindItem(it);
+}
+function removeItem(it) { it.el.remove(); items = items.filter(x => x !== it); }
+function baseFont() { return Math.round(dispW * .075); }
+function paintItem(it) {
+  const el = it.el;
+  el.textContent = it.text;
+  if (it.kind === 'text') {
+    el.className = 'item t-' + it.style;
+    el.style.fontSize = baseFont() + 'px';
+    el.style.color = it.style === 'pill' ? contrastOn(it.color) : it.color;
+    el.style.background = it.style === 'pill' ? it.color : 'transparent';
+    if (it.style === 'outline') el.style.webkitTextStrokeColor = contrastOn(it.color) === '#111111' ? '#000' : '#fff';
+  } else el.style.fontSize = Math.round(dispW * .18) + 'px';
+  placeItem(it);
+}
+function placeItem(it) {
+  const el = it.el, w = el.offsetWidth, h = el.offsetHeight;
+  el.style.transform = 'translate(' + (it.x * dispW - w / 2) + 'px,' + (it.y * dispH - h / 2) + 'px) rotate(' + it.r + 'rad) scale(' + it.s + ')';
+}
+function bindItem(it) {
+  const el = it.el, P = new Map(); let g0 = null, moved = false, tap0 = 0;
+  el.addEventListener('pointerdown', e => {
+    if (drawing) return; e.stopPropagation(); el.setPointerCapture(e.pointerId);
+    P.set(e.pointerId, { x: e.clientX, y: e.clientY }); moved = false; tap0 = Date.now(); g0 = snap();
+    $('trash').hidden = false;
+  });
+  function snap() {
+    const p = [...P.values()];
+    if (p.length >= 2) return { two: true, d: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y), a: Math.atan2(p[1].y - p[0].y, p[1].x - p[0].x), cx: (p[0].x + p[1].x) / 2, cy: (p[0].y + p[1].y) / 2, s: it.s, r: it.r, x: it.x, y: it.y };
+    return { two: false, cx: p[0].x, cy: p[0].y, x: it.x, y: it.y };
+  }
+  el.addEventListener('pointermove', e => {
+    if (!P.has(e.pointerId)) return;
+    P.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const p = [...P.values()];
+    if (p.length >= 2 && !g0.two) g0 = snap();
+    if (p.length < 2 && g0.two) g0 = snap();
+    const cx = p.length >= 2 ? (p[0].x + p[1].x) / 2 : p[0].x, cy = p.length >= 2 ? (p[0].y + p[1].y) / 2 : p[0].y;
+    if (Math.abs(cx - g0.cx) + Math.abs(cy - g0.cy) > 4) moved = true;
+    it.x = g0.x + (cx - g0.cx) / dispW; it.y = g0.y + (cy - g0.cy) / dispH;
+    if (p.length >= 2) {
+      it.s = Math.max(.3, Math.min(6, g0.s * Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y) / g0.d));
+      it.r = g0.r + Math.atan2(p[1].y - p[0].y, p[1].x - p[0].x) - g0.a; moved = true;
+    }
+    placeItem(it);
+    $('trash').classList.toggle('hot', overTrash(e));
+  });
+  const end = e => {
+    if (!P.has(e.pointerId)) return;
+    const del = overTrash(e);
+    P.delete(e.pointerId);
+    if (P.size) { g0 = snap(); return; }
+    $('trash').hidden = true; $('trash').classList.remove('hot');
+    if (del) { removeItem(it); return; }
+    if (!moved && Date.now() - tap0 < 300 && it.kind === 'text') openTextInput(it);
+  };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+}
+function overTrash(e) { const r = $('trash').getBoundingClientRect(); return e.clientX > r.left - 10 && e.clientX < r.right + 10 && e.clientY > r.top - 10 && e.clientY < r.bottom + 10; }
+
+// ---- final full-resolution image ----
+async function compose() {
+  busy(true, 'بہترین کوالٹی میں بن رہی ہے…'); await sleep(30);
+  try {
+    let { w, h } = srcSize();
+    const MAXPX = 16e6;                       // keep within phone canvas limits
+    if (w * h > MAXPX) { const k = Math.sqrt(MAXPX / (w * h)); w *= k; h *= k; }
+    const c = render(raw, efilter, rawMirror, w, h, rawCrop), x = c.getContext('2d');
+    paintStrokes(x, c.width, c.height);
+    const k = c.width / dispW;
+    for (const it of items) {
+      x.save();
+      x.translate(it.x * c.width, it.y * c.height); x.rotate(it.r); x.scale(it.s * k, it.s * k);
+      const fs = it.kind === 'emoji' ? Math.round(dispW * .18) : baseFont();
+      x.font = (it.kind === 'emoji' ? '' : '700 ') + fs + 'px ' + (it.kind === 'emoji' ? 'system-ui, "Apple Color Emoji", "Noto Color Emoji", sans-serif' : '"Noto Naskh Arabic", system-ui, sans-serif');
+      x.textAlign = 'center'; x.textBaseline = 'middle';
+      const lines = it.text.split('\n'), lh = fs * 1.25, th = lh * lines.length;
+      if (it.kind === 'text' && it.style === 'pill') {
+        const tw = Math.max(...lines.map(l => x.measureText(l).width)) + fs * 1.1;
+        x.fillStyle = it.color; roundRect(x, -tw / 2, -th / 2 - fs * .15, tw, th + fs * .3, fs * .5); x.fill();
+      }
+      lines.forEach((l, i) => {
+        const ly = -th / 2 + lh * (i + .5);
+        if (it.kind === 'text') {
+          const col = it.style === 'pill' ? contrastOn(it.color) : it.color;
+          if (it.style === 'shadow') { x.shadowColor = 'rgba(0,0,0,.6)'; x.shadowBlur = fs * .25; x.shadowOffsetY = fs * .05; }
+          if (it.style === 'outline') { x.lineWidth = fs * .12; x.strokeStyle = contrastOn(it.color) === '#111111' ? '#000' : '#fff'; x.lineJoin = 'round'; x.strokeText(l, 0, ly); }
+          x.fillStyle = col; x.fillText(l, 0, ly); x.shadowBlur = 0; x.shadowOffsetY = 0;
+        } else x.fillText(l, 0, ly);
+      });
+      x.restore();
+    }
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', .95));
+    return blob;
+  } finally { busy(false); }
+}
+function roundRect(x, a, b, w, h, r) { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); }
+const stamp = () => { const d = new Date(), p = n => String(n).padStart(2, '0'); return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()); };
+const extOf = t => /mp4/.test(t) ? 'mp4' : /webm/.test(t) ? 'webm' : 'jpg';
+function download(blob, name) {
+  const u = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 4000);
+}
+async function shareBlob(blob, name) {
+  const file = new File([blob], name, { type: blob.type });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: 'لمحہ' }); return true; }
+    catch (e) { if (e.name === 'AbortError') return false; }
+  }
+  download(blob, name); toast('شیئر یہاں نہیں ہو سکا، فائل محفوظ کر دی گئی'); return false;
+}
+$('eSave').onclick = async () => { const b = await compose(); download(b, 'lamha-' + stamp() + '.jpg'); toast('✓ فون میں محفوظ ہو گئی'); };
+$('eKeep').onclick = async () => { const b = await compose(); await memAdd(b, 'photo'); toast('⭐ محفوظ لمحوں میں رکھ دی'); };
+$('eShare').onclick = async () => { const b = await compose(); shareBlob(b, 'lamha-' + stamp() + '.jpg'); };
+
+// ---- gallery import ----
+$('galBtn').onclick = $('permGallery').onclick = () => $('pick').click();
+$('pick').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  busy(true, 'کھل رہی ہے…');
+  try { const bmp = await createImageBitmap(f); busy(false); openEditor(bmp, false, null); }
+  catch (err) { busy(false); toast('یہ تصویر نہیں کھل سکی'); }
+};
+
+// ============ video preview ============
+let vBlob = null, vUrl = '';
+function openVideo(blob) {
+  vBlob = blob; if (vUrl) URL.revokeObjectURL(vUrl); vUrl = URL.createObjectURL(blob);
+  const p = $('vplay'); p.src = vUrl; p.muted = false; $('vMute').textContent = '🔊';
+  show('vedit'); p.play().catch(() => {});
+  history.pushState({ lamha: 'video' }, '');
+}
+function closeVideo() { const p = $('vplay'); p.pause(); p.removeAttribute('src'); show('cam'); }
+$('vClose').onclick = () => { if (confirm('یہ ویڈیو چھوڑ دیں؟')) history.back(); };
+$('vMute').onclick = () => { const p = $('vplay'); p.muted = !p.muted; $('vMute').textContent = p.muted ? '🔇' : '🔊'; };
+$('vSave').onclick = () => { download(vBlob, 'lamha-' + stamp() + '.' + extOf(vBlob.type)); toast('✓ فون میں محفوظ ہو گئی'); };
+$('vKeep').onclick = async () => { await memAdd(vBlob, 'video'); toast('⭐ محفوظ لمحوں میں رکھ دی'); };
+$('vShare').onclick = () => shareBlob(vBlob, 'lamha-' + stamp() + '.' + extOf(vBlob.type));
+
+// ============ memories (kept in this browser, IndexedDB) ============
+let dbP = null;
+function db() {
+  return dbP = dbP || new Promise((ok, no) => {
+    const r = indexedDB.open('lamha', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('mem', { keyPath: 'id', autoIncrement: true });
+    r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error);
+  });
+}
+async function tx(mode, fn) { const d = await db(); return new Promise((ok, no) => { const t = d.transaction('mem', mode), s = t.objectStore('mem'); const r = fn(s); t.oncomplete = () => ok(r && r.result); t.onerror = () => no(t.error); }); }
+async function thumbOf(blob, type) {
+  try {
+    let src;
+    if (type === 'video') {
+      src = document.createElement('video'); src.muted = true; src.playsInline = true; src.src = URL.createObjectURL(blob);
+      await new Promise((ok, no) => { src.onloadeddata = ok; src.onerror = no; setTimeout(ok, 3000); });
+    } else src = await createImageBitmap(blob);
+    const w = src.width || src.videoWidth, h = src.height || src.videoHeight, k = 360 / Math.max(w, h);
+    const c = mk(w * k, h * k); c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', .7);
+  } catch (e) { return ''; }
+}
+async function memAdd(blob, type) {
+  const thumb = await thumbOf(blob, type);   // made first: an IndexedDB transaction can't wait on other work
+  await tx('readwrite', st => st.add({ blob, type, thumb, created: Date.now() }));
+  refreshMemBtn();
+}
+const memAll = () => tx('readonly', s => s.getAll()).then(r => r || []);
+async function refreshMemBtn() {
+  const all = await memAll().catch(() => []), last = all[all.length - 1];
+  $('memBtn').innerHTML = last && last.thumb ? '<img src="' + last.thumb + '" alt="">' : '⭐';
+}
+$('memBtn').onclick = () => openMem(true);
+async function openMem(push = true) {
+  const all = (await memAll()).reverse();
+  $('memCount').textContent = all.length ? all.length + ' لمحے' : '';
+  $('mgrid').innerHTML = all.length ? all.map(m => '<button data-id="' + m.id + '" style="background-image:url(' + m.thumb + ')">' + (m.type === 'video' ? '<i>▶ ویڈیو</i>' : '') + '</button>').join('')
+    : '<div class="mempty" style="grid-column:1/-1">ابھی کوئی لمحہ محفوظ نہیں۔<br>تصویر یا ویڈیو بنا کر <b>⭐ رکھیں</b> دبائیں۔<br><small>یہ لمحے اسی فون کے براؤزر میں رہتے ہیں۔</small></div>';
+  show('mem'); if (push) history.pushState({ lamha: 'mem' }, '');
+}
+$('memBack').onclick = () => history.back();
+let vwItem = null, vwUrl = '';
+$('mgrid').onclick = async e => {
+  const b = e.target.closest('[data-id]'); if (!b) return;
+  const all = await memAll(); vwItem = all.find(m => m.id === +b.dataset.id); if (!vwItem) return;
+  if (vwUrl) URL.revokeObjectURL(vwUrl); vwUrl = URL.createObjectURL(vwItem.blob);
+  $('vwBody').innerHTML = vwItem.type === 'video' ? '<video src="' + vwUrl + '" controls autoplay playsinline loop></video>' : '<img src="' + vwUrl + '" alt="">';
+  show('viewer'); history.pushState({ lamha: 'viewer' }, '');
+};
+function closeViewer() { $('vwBody').innerHTML = ''; openMem(false); }
+$('vwClose').onclick = () => history.back();
+$('vwSave').onclick = () => { download(vwItem.blob, 'lamha-' + stamp() + '.' + extOf(vwItem.blob.type)); toast('✓ فون میں محفوظ ہو گئی'); };
+$('vwShare').onclick = () => shareBlob(vwItem.blob, 'lamha-' + stamp() + '.' + extOf(vwItem.blob.type));
+$('vwDel').onclick = async () => { if (!confirm('یہ لمحہ حذف کر دیں؟')) return; await tx('readwrite', s => s.delete(vwItem.id)); refreshMemBtn(); history.back(); };
+
+// ============ start ============
+buildStrip($('strip'), (id, fromScroll) => pickFilter(id));
+buildStrip($('strip2'), (id, fromScroll) => setEFilter(id, !fromScroll));
+async function boot() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { permissionHelp(null); return; }
+  show('cam');
+  if (await startCam()) { markStrip($('strip'), filterId, true); refreshMemBtn(); }
+}
+$('startBtn').onclick = boot;
+// If the camera was allowed before, open it straight away.
+(async () => {
+  try {
+    const p = navigator.permissions && await navigator.permissions.query({ name: 'camera' });
+    if (p && p.state === 'granted') boot();
+  } catch (e) {}
+})();
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (recording) stopRec(); if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; track = null; } }
+  else if (!$('cam').hidden) startCam();
+});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
 </html>
