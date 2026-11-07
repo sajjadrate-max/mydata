@@ -22,6 +22,8 @@
 // request made by @vercel/blob/client, which carries it in clientPayload.
 //
 // GET  /api/drive?path=a/b/            -> { folders:[{name,path}], files:[{name,path,url,size,uploadedAt}] }
+// GET  /api/drive?all=1                -> { items:[{path,url,size,uploadedAt}] } every file and folder marker
+// POST /api/drive {action:"rename", path:"a/x.pdf", name:"y.pdf"} -> renames a file
 // POST /api/drive {action:"mkdir", path:"a/b/"}         -> creates a folder
 // POST /api/drive {action:"delete", path:"a/x.pdf"}     -> deletes a file
 // POST /api/drive {action:"delete", path:"a/b/"}        -> deletes a folder with everything inside
@@ -35,7 +37,7 @@
 //                                                          straight to Blob, so any size works)
 
 import { timingSafeEqual, scryptSync, randomBytes, createHmac, createHash } from 'node:crypto';
-import { list, del, put, createFolder } from '@vercel/blob';
+import { list, del, put, copy, createFolder } from '@vercel/blob';
 import { handleUpload } from '@vercel/blob/client';
 
 export const config = { maxDuration: 60 };
@@ -130,6 +132,29 @@ async function listFolder(rel) {
   return { path: rel, folders, files };
 }
 
+async function listAll() {
+  const items = [];
+  let cursor;
+  do {
+    const r = await list({ prefix: ROOT, cursor, limit: 1000 });
+    for (const b of r.blobs) items.push({ path: b.pathname.slice(ROOT.length), url: b.url, size: b.size, uploadedAt: b.uploadedAt });
+    cursor = r.hasMore ? r.cursor : undefined;
+  } while (cursor);
+  return { items };
+}
+
+async function renameFile(rel, name) {
+  const to = clean(String(name || '').replace(/\//g, '_'));
+  if (!rel || rel.endsWith('/') || !to) throw new Error('bad.path');
+  const r = await list({ prefix: ROOT + rel, limit: 10 });
+  const src = r.blobs.find(b => b.pathname === ROOT + rel);
+  if (!src) throw new Error('bad.path');
+  const dir = rel.includes('/') ? rel.slice(0, rel.lastIndexOf('/') + 1) : '';
+  const out = await copy(src.url, ROOT + dir + to, { access: 'public', addRandomSuffix: true });
+  await del(src.url);
+  return out.pathname.slice(ROOT.length);
+}
+
 async function remove(rel) {
   if (!rel) throw new Error('bad.path');                // never wipe the whole drive at once
   if (!rel.endsWith('/')) {
@@ -196,6 +221,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
+      if (req.query && req.query.all) { res.status(200).json(await listAll()); return; }
       res.status(200).json(await listFolder(clean(req.query && req.query.path, true)));
       return;
     }
@@ -225,6 +251,10 @@ export default async function handler(req, res) {
       const { google, ...rest } = auth;
       await saveConfig(rest);
       res.status(200).json({ ok: true });
+      return;
+    }
+    if (body.action === 'rename') {
+      res.status(200).json({ ok: true, path: await renameFile(clean(body.path), body.name) });
       return;
     }
     if (body.action === 'mkdir') {

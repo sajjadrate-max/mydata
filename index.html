@@ -55,7 +55,7 @@ input:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(-
 .crumbs .sep{color:var(--muted)}
 .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .tools .field{flex:1;min-width:160px;padding:9px 12px}
-.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs-unused{display:flex;gap:6px;flex-wrap:wrap}
 .tabs button{border:1.5px solid var(--line);border-radius:999px;padding:3px 12px;font-size:.88rem;color:var(--muted)}
 .tabs button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:700}
 .sec{font-weight:700;color:var(--muted);font-size:.9rem;margin:4px 2px -6px}
@@ -127,6 +127,45 @@ input:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(-
 .help{font-size:.85rem;color:var(--muted);margin:0;padding-inline-start:18px}
 .help li{margin-bottom:4px}
 .dialog .card{max-height:90vh;overflow:auto}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:var(--surface);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));box-shadow:0 -2px 12px rgba(0,0,0,.06)}
+.bnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;font-size:.78rem;color:var(--muted);padding:4px 0;border-radius:10px}
+.bnav button span{font-size:1.25rem;line-height:1.4;filter:grayscale(1);opacity:.7}
+.bnav button[aria-current]{color:var(--accent);font-weight:700}
+.bnav button[aria-current] span{filter:none;opacity:1}
+body.in{padding-bottom:150px}
+body.in .fab{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+body.in .uploads{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+.rows{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.rowi{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);min-width:0}
+.rowi:last-child{border-bottom:0}
+.rowi .main{flex:1;display:flex;align-items:center;gap:12px;min-width:0;text-align:right}
+.rowi .ic{width:44px;height:44px;border-radius:10px;background:var(--soft);flex:none;display:flex;align-items:center;justify-content:center;font-size:1.4rem;overflow:hidden;position:relative}
+.rowi .ic img{width:100%;height:100%;object-fit:cover}
+.rowi .ic.fold{background:#FCE9B8;color:#9A6A08}
+.rowi .tx{display:flex;flex-direction:column;min-width:0}
+.rowi .tx b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.95rem}
+.rowi .tx small{color:var(--muted);font-size:.78rem}
+.more{flex:none;width:36px;height:36px;border-radius:50%;font-size:1.3rem;color:var(--muted);line-height:1}
+.more:hover{background:var(--soft)}
+.file{position:relative}
+.file .more{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.45);color:#fff;width:30px;height:30px;font-size:1.1rem}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+#list{display:flex;flex-direction:column;gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;min-width:0}
+.stat .ic{font-size:1.5rem}
+.stat b{display:block;font-size:.8rem;white-space:nowrap}
+.stat small{color:var(--muted);font-size:.7rem;display:block}
+.usage{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.usage .bar{height:8px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px}
+.gallery button{aspect-ratio:1;background:var(--soft);border-radius:6px;overflow:hidden;position:relative;padding:0}
+.gallery img,.gallery video{width:100%;height:100%;object-fit:cover;display:block}
+.gallery .play{position:absolute;inset:auto auto 6px 6px;background:rgba(0,0,0,.6);color:#fff;border-radius:6px;font-size:.7rem;padding:0 6px}
+.h2{font-weight:700;font-size:1.05rem;margin:6px 2px 0}
+.acct{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.acct .av{width:46px;height:46px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex:none}
+.sheet-h{display:flex;align-items:center;gap:10px;min-width:0}
+.sheet-h b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 body.in .hero{padding:12px 16px;border-radius:16px}
 body.in .hero .feats,body.in .hero p{display:none}
 body.in .hero .logo{width:38px;height:38px;font-size:1.3rem;border-radius:11px}
@@ -189,22 +228,13 @@ body.in .hero h1{font-size:1.25rem;line-height:1.8}
   <div class="status err" id="err" hidden></div>
 
   <!-- Drive -->
-  <section id="drive" hidden style="display:flex;flex-direction:column;gap:14px">
-    <nav class="crumbs" id="crumbs" aria-label="فولڈر کا راستہ"></nav>
+  <section id="drive" hidden style="display:flex;flex-direction:column;gap:12px">
     <div class="tools">
-      <input class="field" id="q" type="search" placeholder="🔍 تلاش کریں">
-      <button class="btn ghost" id="refresh" title="دوبارہ لوڈ کریں">⟳</button>
-      <button class="btn ghost" id="chpass" title="سیٹنگز" aria-label="سیٹنگز">⚙️</button>
-      <button class="btn ghost" id="logout" title="لاگ آؤٹ" aria-label="لاگ آؤٹ">🚪</button>
+      <input class="field" id="q" type="search" placeholder="🔍 تمام فائلوں میں تلاش کریں">
+      <button class="btn ghost" id="sortBtn" title="ترتیب" aria-label="ترتیب">⇅</button>
+      <button class="btn ghost" id="viewBtn" title="لسٹ / گرڈ" aria-label="لسٹ یا گرڈ">▦</button>
     </div>
-    <div class="tabs" id="tabs" role="group" aria-label="قسم">
-      <button data-k="all" aria-pressed="true">سب</button>
-      <button data-k="image" aria-pressed="false">🖼️ تصویریں</button>
-      <button data-k="video" aria-pressed="false">🎬 ویڈیوز</button>
-      <button data-k="pdf" aria-pressed="false">📕 PDF</button>
-      <button data-k="audio" aria-pressed="false">🎵 آڈیو</button>
-      <button data-k="other" aria-pressed="false">📎 دیگر</button>
-    </div>
+    <nav class="crumbs" id="crumbs" aria-label="فولڈر کا راستہ"></nav>
     <div id="list"></div>
   </section>
 </div>
@@ -216,6 +246,12 @@ body.in .hero h1{font-size:1.25rem;line-height:1.8}
   </div>
   <button class="main" id="fabMain" aria-label="شامل کریں" aria-expanded="false">+</button>
 </div>
+<nav class="bnav" id="bnav" hidden aria-label="حصے">
+  <button data-tab="home"><span>🏠</span>ہوم</button>
+  <button data-tab="drive"><span>📁</span>ڈرائیو</button>
+  <button data-tab="media"><span>🖼️</span>میڈیا</button>
+  <button data-tab="menu"><span>☰</span>مینو</button>
+</nav>
 <input type="file" id="picker" multiple hidden>
 <div class="uploads" id="uploads" hidden></div>
 <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true"></div>
@@ -237,8 +273,6 @@ const BASES = sameSite ? [''] : [SITE];
 let base = null;
 let key = store.get('driveKey');
 let path = decodeURIComponent((location.hash || '').replace(/^#\/?/, ''));
-let data = { folders: [], files: [] };
-let kind = 'all';
 
 // ---- server ----
 async function call(method, body, q) {
@@ -290,6 +324,7 @@ const SCREENS = ['boot', 'setup', 'login', 'newpass', 'drive'];
 function screen(id) {
   for (const x of SCREENS) $(x).hidden = x !== id;
   $('fab').hidden = id !== 'drive';
+  $('bnav').hidden = id !== 'drive';
   document.body.classList.toggle('in', id === 'drive');
   if (id !== 'drive') showErr('');
 }
@@ -300,7 +335,7 @@ let showLogin = function (msg) {
   $('loginMsg').textContent = msg || ''; $('loginMsg').hidden = !msg;
   $('pw').focus();
 }
-function showDrive() { screen('drive'); }
+function showDrive() { screen('drive'); setTab(tab, true); }
 function route(e) {                     // server said something other than "ok"
   if (e === 'setup') showSetup();
   else if (e === 'newpass') showNewPass();
@@ -381,11 +416,11 @@ $('newpass').addEventListener('submit', async ev => {
   finally { b.disabled = false; }
 });
 
-$('logout').onclick = async () => {
-  store.set('driveKey', ''); key = '';
+async function logout() {
+  store.set('driveKey', ''); key = ''; all = [];
   const j = await findBase(); googleId = j && j.google ? j.google : '';
   showLogin();
-};
+}
 
 // ---- settings ----
 async function changePassword() {
@@ -404,21 +439,6 @@ function sheet(html) {
   d.onclick = e => { if (e.target === d || e.target.closest('[data-close]')) close(); };
   return close;
 }
-$('chpass').onclick = () => {
-  const close = sheet('<b>⚙️ سیٹنگز</b><div class="menu">' +
-    '<button id="mPass">🔑 پاس ورڈ بدلیں<small>نیا پاس ورڈ رکھیں</small></button>' +
-    (googleEmail
-      ? '<button id="mUnG">📧 Gmail لاگ ان ہٹائیں<small dir="ltr">' + esc(googleEmail) + '</small></button>'
-      : '<button id="mG">📧 Gmail سے لاگ ان لگائیں<small>پاس ورڈ کے بغیر، اپنے Google اکاؤنٹ سے کھولیں</small></button>') +
-    '</div><div class="row"><button class="btn ghost" data-close>بند کریں</button></div>');
-  $('mPass').onclick = () => { close(); changePassword(); };
-  if ($('mG')) $('mG').onclick = () => { close(); linkGoogle(); };
-  if ($('mUnG')) $('mUnG').onclick = async () => {
-    close();
-    if (!await ask('Gmail لاگ ان ہٹا دیں؟', { text: 'اس کے بعد صرف پاس ورڈ سے لاگ ان ہوگا۔', ok: 'ہٹائیں', danger: true })) return;
-    try { await call('POST', { action: 'unlinkgoogle' }); googleEmail = ''; } catch (e) { showErr(errText(e)); }
-  };
-};
 async function offerGoogle() {
   if (googleEmail) return;
   if (await ask('📧 Gmail سے لاگ ان؟', { text: 'چاہیں تو اب Gmail لاگ ان بھی لگا سکتے ہیں، تاکہ پاس ورڈ یاد رکھنے کی ضرورت نہ رہے۔ یہ بعد میں ⚙️ سیٹنگز سے بھی ہو سکتا ہے۔', ok: 'ابھی لگائیں', input: false, cancel: true })) linkGoogle();
@@ -452,30 +472,65 @@ function linkGoogle() {
   };
 }
 
-// ---- listing ----
+// ---- data: the whole tree comes in one call, then Home / Drive / Media are built here ----
+let all = [];            // files: {path,name,dir,url,size,uploadedAt}
+let folderSet = new Set(['']);
+let tab = 'drive';
+let sortBy = store.get('sortBy') || 'date';
+let viewMode = store.get('viewMode') || 'list';
 async function load() {
   showErr('');
-  $('list').innerHTML = '<div class="empty"><span class="spin"></span></div>';
-  crumbs();
-  try { data = await call('GET', null, '?path=' + encodeURIComponent(path)); render(); }
-  catch (e) {
+  if (!all.length) $('list').innerHTML = '<div class="empty"><span class="spin"></span></div>';
+  try {
+    const j = await call('GET', null, '?all=1');
+    all = []; folderSet = new Set(['']);
+    for (const it of j.items) {
+      const parts = it.path.split('/'); let acc = '';
+      for (let i = 0; i < parts.length - 1; i++) { acc += parts[i] + '/'; folderSet.add(acc); }
+      if (it.path.endsWith('/')) continue;
+      const cut = it.path.lastIndexOf('/') + 1;
+      all.push({ ...it, name: it.path.slice(cut), dir: it.path.slice(0, cut) });
+    }
+    if (path && !folderSet.has(path)) path = '';
+    render();
+  } catch (e) {
     if (e.message === 'auth') { store.set('driveKey', ''); if (e.info && e.info.google) googleId = e.info.google; showLogin(ERR.auth); return; }
     if (e.message === 'setup' || e.message === 'newpass') { route(e.message); return; }
     $('list').innerHTML = ''; showErr(errText(e));
   }
 }
+const subFolders = dir => [...folderSet].filter(f => f !== dir && f.startsWith(dir) && !f.slice(dir.length, -1).includes('/'));
+const filesIn = dir => all.filter(f => f.dir === dir);
+const folderName = f => f.slice(0, -1).split('/').pop();
+function sorted(list, isFolder) {
+  const by = {
+    name: (a, b) => (isFolder ? folderName(a) : NICE(a.name)).localeCompare(isFolder ? folderName(b) : NICE(b.name)),
+    date: (a, b) => isFolder ? folderName(a).localeCompare(folderName(b)) : String(b.uploadedAt).localeCompare(String(a.uploadedAt)),
+    size: (a, b) => isFolder ? folderName(a).localeCompare(folderName(b)) : (b.size || 0) - (a.size || 0)
+  };
+  return [...list].sort(by[sortBy] || by.date);
+}
+
 // Each folder gets its own #/address, so the phone's Back button goes up a folder.
 const hashPath = () => decodeURIComponent((location.hash || '').replace(/^#\/?/, ''));
 function go(p) {
-  $('q').value = '';
-  if (p) { location.hash = '#/' + encodeURIComponent(p); return; }   // hashchange loads it
-  history.pushState(null, '', location.pathname + location.search); path = ''; load();
+  $('q').value = ''; setTab('drive', true);
+  if (p) { location.hash = '#/' + encodeURIComponent(p); return; }   // hashchange renders it
+  history.pushState(null, '', location.pathname + location.search); path = ''; render();
 }
-window.addEventListener('hashchange', () => { const p = hashPath(); if (p !== path) { path = p; load(); } });
+window.addEventListener('hashchange', () => { const p = hashPath(); if (p !== path) { path = p; tab = 'drive'; render(); } });
+
+function setTab(t, quiet) {
+  tab = t;
+  for (const b of $('bnav').children) b.toggleAttribute('aria-current', b.dataset.tab === t);
+  if (!quiet) render();
+  window.scrollTo(0, 0);
+}
+$('bnav').onclick = e => { const b = e.target.closest('button'); if (b) { $('q').value = ''; setTab(b.dataset.tab); } };
 
 function crumbs() {
   const parts = path.split('/').filter(Boolean);
-  let h = '<button data-p=""' + (parts.length ? '' : ' aria-current="page"') + '>🏠 میرا ڈیٹا</button>';
+  let h = '<button data-p=""' + (parts.length ? '' : ' aria-current="page"') + '>📁 ڈرائیو</button>';
   parts.forEach((p, i) => {
     const to = parts.slice(0, i + 1).join('/') + '/';
     h += '<span class="sep">‹</span><button data-p="' + esc(to) + '"' + (i === parts.length - 1 ? ' aria-current="page"' : '') + '>' + esc(p) + '</button>';
@@ -484,46 +539,175 @@ function crumbs() {
 }
 $('crumbs').onclick = e => { const b = e.target.closest('button'); if (b) go(b.dataset.p); };
 
+// ---- item markup ----
+function thumbIcon(f) {
+  const t = typeOf(f.name);
+  if (t === 'image') return '<span class="ic"><img loading="lazy" src="' + esc(f.url) + '" alt=""></span>';
+  return '<span class="ic">' + ICON[t] + '</span>';
+}
+function folderSub(f) {
+  const nf = subFolders(f).length, nfi = filesIn(f).length;
+  if (!nf && !nfi) return 'خالی';
+  return [nf ? nf + ' فولڈر' : '', nfi ? nfi + ' فائلیں' : ''].filter(Boolean).join(' · ');
+}
+function rowFolder(f) {
+  return '<div class="rowi"><button class="main" data-folder="' + esc(f) + '"><span class="ic fold">📁</span><span class="tx"><b dir="auto">' + esc(folderName(f)) + '</b><small>' + folderSub(f) + '</small></span></button>' +
+    '<button class="more" data-more-folder="' + esc(f) + '" aria-label="مزید">⋮</button></div>';
+}
+function rowFile(f, showDir) {
+  return '<div class="rowi"><button class="main" data-file="' + esc(f.path) + '">' + thumbIcon(f) + '<span class="tx"><b dir="auto">' + esc(NICE(f.name)) + '</b><small><bdi>' + size(f.size || 0) + '</bdi> · ' + when(f.uploadedAt) +
+    (showDir && f.dir ? ' · 📁 ' + esc(f.dir.slice(0, -1)) : '') + '</small></span></button>' +
+    '<button class="more" data-more="' + esc(f.path) + '" aria-label="مزید">⋮</button></div>';
+}
+function cardFile(f) {
+  const t = typeOf(f.name), nm = NICE(f.name);
+  let th = ICON[t];
+  if (t === 'image') th = '<img loading="lazy" src="' + esc(f.url) + '" alt="">';
+  else if (t === 'video') th = '<video preload="metadata" muted playsinline src="' + esc(f.url) + '#t=0.5"></video><span class="badge">▶ ' + esc(ext(f.name).toUpperCase()) + '</span>';
+  else th += '<span class="badge">' + esc(ext(f.name).toUpperCase() || '—') + '</span>';
+  return '<div class="file"><button class="main" data-file="' + esc(f.path) + '" style="display:flex;flex-direction:column;width:100%;padding:0"><span class="thumb">' + th + '</span><span class="meta"><span class="nm" dir="auto">' + esc(nm) + '</span><span class="sz"><bdi>' + size(f.size || 0) + '</bdi> · ' + when(f.uploadedAt) + '</span></span></button>' +
+    '<button class="more" data-more="' + esc(f.path) + '" aria-label="مزید">⋮</button></div>';
+}
+function fileList(files, showDir) {
+  if (viewMode === 'grid') return '<div class="grid">' + files.map(cardFile).join('') + '</div>';
+  return '<div class="rows">' + files.map(f => rowFile(f, showDir)).join('') + '</div>';
+}
+function mixed(folders, files, showDir) {
+  if (viewMode === 'grid') return (folders.length ? '<div class="rows">' + folders.map(rowFolder).join('') + '</div>' : '') + (files.length ? fileList(files, showDir) : '');
+  return folders.length || files.length ? '<div class="rows">' + folders.map(rowFolder).join('') + files.map(f => rowFile(f, showDir)).join('') + '</div>' : '';
+}
+function gallery(files) {
+  return '<div class="gallery">' + files.map(f => typeOf(f.name) === 'image'
+    ? '<button data-file="' + esc(f.path) + '"><img loading="lazy" src="' + esc(f.url) + '" alt=""></button>'
+    : '<button data-file="' + esc(f.path) + '"><video preload="metadata" muted playsinline src="' + esc(f.url) + '#t=0.5"></video><span class="play">▶</span></button>').join('') + '</div>';
+}
+
+// ---- screens inside the drive ----
+const KINDS = [['image', '🖼️', 'تصویریں'], ['video', '🎬', 'ویڈیوز'], ['pdf', '📕', 'PDF'], ['audio', '🎵', 'آڈیو'], ['other', '📄', 'دیگر']];
+let kindFilter = '';
 function render() {
   const q = $('q').value.trim().toLowerCase();
-  const folders = data.folders.filter(f => !q || f.name.toLowerCase().includes(q));
-  const files = data.files.filter(f => (!q || NICE(f.name).toLowerCase().includes(q)) && (kind === 'all' || typeOf(f.name) === kind));
+  $('crumbs').hidden = !(tab === 'drive' && !q);
+  $('drive').querySelector('.tools').hidden = tab === 'menu';
+  $('fab').hidden = !(tab === 'drive' || tab === 'home');
+  $('viewBtn').textContent = viewMode === 'grid' ? '☰' : '▦';
   let h = '';
-  if (folders.length && kind === 'all') {
-    h += '<div class="sec">فولڈر (' + folders.length + ')</div><div class="grid" style="margin-top:12px">';
-    for (const f of folders) h += '<button class="folder" data-folder="' + esc(f.path) + '"><span class="ic">📁</span><span class="nm">' + esc(f.name) + '</span></button>';
-    h += '</div>';
+  if (q) {                                   // search everything
+    const fo = [...folderSet].filter(f => f && folderName(f).toLowerCase().includes(q));
+    const fi = sorted(all.filter(f => NICE(f.name).toLowerCase().includes(q)));
+    h += mixed(sorted(fo, true), fi, true);
+    if (!h) h = '<div class="empty">کچھ نہیں ملا۔</div>';
+  } else if (tab === 'home') {
+    const total = all.reduce((a, f) => a + (f.size || 0), 0);
+    h += '<div class="usage"><b>☁️ آپ کا اسٹوریج</b><span class="lead"><bdi>' + size(total) + '</bdi> استعمال ہوا · ' + all.length + ' فائلیں · ' + (folderSet.size - 1) + ' فولڈر</span></div>';
+    h += '<div class="stats">' + KINDS.map(([k, ic, label]) => {
+      const list = all.filter(f => typeOf(f.name) === k);
+      return '<button class="stat" data-kind="' + k + '"' + (kindFilter === k ? ' style="border-color:var(--accent)"' : '') + '><span class="ic">' + ic + '</span><span><b>' + label + '</b><small>' + list.length + ' · <bdi>' + size(list.reduce((a, f) => a + (f.size || 0), 0)) + '</bdi></small></span></button>';
+    }).join('') + '</div>';
+    if (kindFilter) {
+      const list = sorted(all.filter(f => typeOf(f.name) === kindFilter));
+      const label = KINDS.find(k => k[0] === kindFilter)[2];
+      h += '<div class="h2">' + label + ' (' + list.length + ') <button class="btn ghost" data-kind="" style="padding:2px 12px;font-size:.8rem">✕ سب</button></div>';
+      h += list.length ? fileList(list, true) : '<div class="empty">ابھی کوئی نہیں۔</div>';
+    } else {
+      const recent = [...all].sort((a, b) => String(b.uploadedAt).localeCompare(String(a.uploadedAt))).slice(0, 15);
+      h += '<div class="h2">🕘 حالیہ فائلیں</div>';
+      h += recent.length ? fileList(recent, true) : '<div class="empty">ابھی کوئی فائل نہیں۔<br>نیچے <b>+</b> دبا کر پہلی فائل اپ لوڈ کریں۔</div>';
+    }
+  } else if (tab === 'media') {
+    const media = all.filter(f => ['image', 'video'].includes(typeOf(f.name))).sort((a, b) => String(b.uploadedAt).localeCompare(String(a.uploadedAt)));
+    if (!media.length) h = '<div class="empty">ابھی کوئی تصویر یا ویڈیو نہیں۔</div>';
+    else {
+      const groups = new Map();
+      for (const f of media) { let k = ''; try { k = new Date(f.uploadedAt).toLocaleDateString('ur-PK', { month: 'long', year: 'numeric' }); } catch (e) {} if (!groups.has(k)) groups.set(k, []); groups.get(k).push(f); }
+      for (const [k, list] of groups) h += '<div class="h2">' + esc(k) + ' <small style="color:var(--muted);font-weight:400">(' + list.length + ')</small></div>' + gallery(list);
+    }
+  } else if (tab === 'menu') {
+    const total = all.reduce((a, f) => a + (f.size || 0), 0);
+    h += '<div class="acct"><span class="av">' + (googleEmail ? esc(googleEmail[0].toUpperCase()) : '🔒') + '</span><span class="tx" style="display:flex;flex-direction:column;min-width:0"><b>میرا اکاؤنٹ</b><small style="color:var(--muted)" dir="auto">' + (googleEmail ? esc(googleEmail) : 'پاس ورڈ سے لاگ ان') + '</small></span></div>';
+    h += '<div class="menu">' +
+      '<button data-act="usage">📊 اسٹوریج<small><bdi>' + size(total) + '</bdi> استعمال · ' + all.length + ' فائلیں</small></button>' +
+      '<button data-act="pass">🔑 پاس ورڈ بدلیں<small>نیا پاس ورڈ رکھیں</small></button>' +
+      (googleEmail ? '<button data-act="ungoogle">📧 Gmail لاگ ان ہٹائیں<small dir="ltr">' + esc(googleEmail) + '</small></button>'
+                   : '<button data-act="google">📧 Gmail سے لاگ ان لگائیں<small>پاس ورڈ کے بغیر، اپنے Google اکاؤنٹ سے کھولیں</small></button>') +
+      '<button data-act="refresh">⟳ تازہ کریں<small>فائلوں کی فہرست دوبارہ لائیں</small></button>' +
+      '<button data-act="logout" style="color:var(--danger)">🚪 لاگ آؤٹ<small>اس فون سے باہر نکلیں</small></button>' +
+      '</div>';
+  } else {                                   // drive
+    crumbs();
+    const fo = sorted(subFolders(path), true), fi = sorted(filesIn(path));
+    h += mixed(fo, fi, false);
+    if (!h) h = '<div class="empty">' + (path ? 'یہ فولڈر خالی ہے۔' : 'ابھی کچھ نہیں۔') + '<br>نیچے <b>+</b> دبا کر فائلیں اپ لوڈ کریں یا نیا فولڈر بنائیں۔</div>';
   }
-  if (files.length) {
-    const total = files.reduce((a, f) => a + (f.size || 0), 0);
-    h += '<div class="sec" style="margin-top:14px">فائلیں: ' + files.length + ' — <bdi>' + size(total) + '</bdi></div><div class="grid" style="margin-top:12px">';
-    files.forEach(f => {
-      const t = typeOf(f.name), nm = NICE(f.name);
-      let th = ICON[t];
-      if (t === 'image') th = '<img loading="lazy" src="' + esc(f.url) + '" alt="">';
-      else if (t === 'video') th = '<video preload="metadata" muted playsinline src="' + esc(f.url) + '#t=0.5"></video><span class="badge">▶ ' + esc(ext(f.name).toUpperCase()) + '</span>';
-      else th += '<span class="badge">' + esc(ext(f.name).toUpperCase() || '—') + '</span>';
-      h += '<button class="file" data-file="' + esc(f.path) + '"><span class="thumb">' + th + '</span><span class="meta"><span class="nm" dir="auto">' + esc(nm) + '</span><span class="sz">' + size(f.size || 0) + ' · ' + when(f.uploadedAt) + '</span></span></button>';
-    });
-    h += '</div>';
-  }
-  if (!h) h = '<div class="empty">' + (q || kind !== 'all' ? 'کچھ نہیں ملا۔' : 'یہ فولڈر خالی ہے۔<br>نیچے <b>+</b> دبا کر فائلیں اپ لوڈ کریں یا نیا فولڈر بنائیں۔') + '</div>';
-  if (path) h += '<div style="margin-top:22px"><button class="btn ghost" id="delFolder" style="color:var(--danger)">🗑️ یہ فولڈر حذف کریں</button></div>';
   $('list').innerHTML = h;
-  const df = $('delFolder'); if (df) df.onclick = () => removeItem(path, true);
 }
 $('q').oninput = render;
-$('refresh').onclick = load;
-$('tabs').onclick = e => {
-  const b = e.target.closest('button'); if (!b) return;
-  kind = b.dataset.k;
-  for (const x of $('tabs').children) x.setAttribute('aria-pressed', String(x === b));
-  render();
+$('viewBtn').onclick = () => { viewMode = viewMode === 'grid' ? 'list' : 'grid'; store.set('viewMode', viewMode); render(); };
+$('sortBtn').onclick = () => {
+  const close = sheet('<b>⇅ ترتیب</b><div class="menu">' +
+    [['date', '🕘 تاریخ (نئی پہلے)'], ['name', '🔤 نام'], ['size', '📦 سائز (بڑی پہلے)']].map(([k, l]) => '<button data-sort="' + k + '">' + l + (sortBy === k ? ' ✓' : '') + '</button>').join('') +
+    '</div>');
+  $('dialog').querySelectorAll('[data-sort]').forEach(b => b.onclick = () => { sortBy = b.dataset.sort; store.set('sortBy', sortBy); close(); render(); });
 };
-$('list').onclick = e => {
+$('list').onclick = async e => {
+  const k = e.target.closest('[data-kind]'); if (k) { kindFilter = k.dataset.kind === kindFilter ? '' : k.dataset.kind; render(); return; }
+  const mf = e.target.closest('[data-more-folder]'); if (mf) { folderMenu(mf.dataset.moreFolder); return; }
+  const m = e.target.closest('[data-more]'); if (m) { fileMenu(all.find(x => x.path === m.dataset.more)); return; }
   const f = e.target.closest('[data-folder]'); if (f) { go(f.dataset.folder); return; }
-  const g = e.target.closest('[data-file]'); if (g) openFile(data.files.find(x => x.path === g.dataset.file));
+  const g = e.target.closest('[data-file]'); if (g) { openFile(all.find(x => x.path === g.dataset.file)); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'pass') changePassword();
+  else if (act === 'google') linkGoogle();
+  else if (act === 'ungoogle') {
+    if (!await ask('Gmail لاگ ان ہٹا دیں؟', { text: 'اس کے بعد صرف پاس ورڈ سے لاگ ان ہوگا۔', ok: 'ہٹائیں', danger: true })) return;
+    try { await call('POST', { action: 'unlinkgoogle' }); googleEmail = ''; render(); } catch (err) { showErr(errText(err)); }
+  }
+  else if (act === 'refresh') load();
+  else if (act === 'usage') setTab('home');
+  else if (act === 'logout') logout();
 };
+
+// ---- ⋮ menus ----
+async function shareLink(f) {
+  const nm = NICE(f.name);
+  if (navigator.share) { try { await navigator.share({ title: nm, url: f.url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(f.url); await ask('🔗 لنک کاپی ہو گیا', { text: 'جس کے پاس یہ لنک ہوگا وہ یہ فائل دیکھ اور ڈاؤن لوڈ کر سکے گا۔', ok: 'ٹھیک ہے' }); }
+  catch (e) { await ask('🔗 فائل کا لنک', { text: f.url, ok: 'ٹھیک ہے' }); }
+}
+function fileMenu(f) {
+  if (!f) return;
+  const close = sheet('<div class="sheet-h">' + thumbIcon(f).replace('class="ic"', 'class="ic" style="width:44px;height:44px;border-radius:10px;background:var(--soft);display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none"') +
+    '<span style="display:flex;flex-direction:column;min-width:0"><b dir="auto">' + esc(NICE(f.name)) + '</b><small style="color:var(--muted)"><bdi>' + size(f.size || 0) + '</bdi> · ' + when(f.uploadedAt) + (f.dir ? ' · 📁 ' + esc(f.dir.slice(0, -1)) : '') + '</small></span></div>' +
+    '<div class="menu">' +
+    '<button data-m="open">👁️ کھولیں</button>' +
+    '<button data-m="dl">⬇️ ڈاؤن لوڈ</button>' +
+    '<button data-m="share">🔗 لنک شیئر کریں<small>جس کے پاس لنک ہو وہ فائل دیکھ سکے گا</small></button>' +
+    '<button data-m="rename">✏️ نام بدلیں</button>' +
+    (f.dir && tab !== 'drive' ? '<button data-m="folder">📁 فولڈر میں دیکھیں</button>' : '') +
+    '<button data-m="del" style="color:var(--danger)">🗑️ حذف کریں</button>' +
+    '</div>');
+  $('dialog').querySelectorAll('[data-m]').forEach(b => b.onclick = async () => {
+    const m = b.dataset.m; close();
+    if (m === 'open') openFile(f);
+    else if (m === 'dl') { const a = document.createElement('a'); a.href = dl(f.url); a.download = NICE(f.name); document.body.appendChild(a); a.click(); a.remove(); }
+    else if (m === 'share') shareLink(f);
+    else if (m === 'folder') go(f.dir);
+    else if (m === 'del') removeItem(f.path, false);
+    else if (m === 'rename') {
+      const name = await ask('✏️ نیا نام', { input: true, ok: 'محفوظ کریں', value: NICE(f.name) });
+      if (!name || name === NICE(f.name)) return;
+      if (/[\/\\]/.test(name)) { showErr(ERR['bad.path']); return; }
+      try { await call('POST', { action: 'rename', path: f.path, name: ext(name) || !ext(f.name) ? name : name + '.' + ext(f.name) }); load(); }
+      catch (e) { showErr(errText(e)); }
+    }
+  });
+}
+function folderMenu(p) {
+  const close = sheet('<div class="sheet-h"><span class="ic fold" style="width:44px;height:44px;border-radius:10px;background:#FCE9B8;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex:none">📁</span><span style="display:flex;flex-direction:column;min-width:0"><b dir="auto">' + esc(folderName(p)) + '</b><small style="color:var(--muted)">' + folderSub(p) + '</small></span></div>' +
+    '<div class="menu"><button data-m="open">📂 کھولیں</button><button data-m="del" style="color:var(--danger)">🗑️ فولڈر حذف کریں<small>اندر کی تمام فائلیں بھی</small></button></div>');
+  $('dialog').querySelectorAll('[data-m]').forEach(b => b.onclick = () => { close(); b.dataset.m === 'open' ? go(p) : removeItem(p, true); });
+}
 
 // ---- viewer ----
 function openFile(f) {
@@ -549,7 +733,7 @@ function openFile(f) {
 function closeViewer() { const v = $('viewer'); v.hidden = true; v.innerHTML = ''; }
 window.addEventListener('popstate', () => {
   if (!$('viewer').hidden) closeViewer();
-  else { const p = hashPath(); if (p !== path) { path = p; load(); } }
+  else { const p = hashPath(); if (p !== path) { path = p; render(); } }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('viewer').hidden) history.back(); });
 
@@ -564,7 +748,7 @@ function ask(title, opts) {
     const close = v => { d.hidden = true; d.innerHTML = ''; done(v); };
     d.querySelector('form').onsubmit = e => { e.preventDefault(); close(opts.input ? $('dIn').value.trim() : true); };
     if ($('dNo')) $('dNo').onclick = () => close(null);
-    if (opts.input) $('dIn').focus();
+    if (opts.input) { if (opts.value) $('dIn').value = opts.value; $('dIn').focus(); }
   });
 }
 async function newFolder() {
@@ -582,7 +766,8 @@ async function removeItem(p, folder) {
   try {
     await call('POST', { action: 'delete', path: p });
     if (!$('viewer').hidden) history.back();
-    if (folder) go(p.split('/').filter(Boolean).slice(0, -1).map(s => s + '/').join('')); else load();
+    if (folder && path.startsWith(p)) path = p.split('/').filter(Boolean).slice(0, -1).map(s => s + '/').join('');
+    load();
   } catch (e) { showErr(errText(e)); }
 }
 
@@ -620,7 +805,7 @@ async function uploadFiles(list) {
     }
   }
   await Promise.all([worker(), worker()]);
-  if (path === target) load();
+  load();
   setTimeout(() => { for (const r of rows) if (r.el.classList.contains('done')) r.el.remove(); if (!box.children.length) box.hidden = true; }, 3000);
 }
 $('picker').onchange = e => { const files = [...e.target.files]; e.target.value = ''; uploadFiles(files); };
