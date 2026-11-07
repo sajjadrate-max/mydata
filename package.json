@@ -1,0 +1,9 @@
+{
+  "name": "mydata",
+  "private": true,
+  "type": "module",
+  "description": "Mera Data: personal cloud storage (static page + Vercel API in api/).",
+  "dependencies": {
+    "@vercel/blob": "^2.8.2"
+  }
+}
