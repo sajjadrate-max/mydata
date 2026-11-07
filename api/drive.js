@@ -11,6 +11,13 @@
 // Forgot the password? Delete the mera-data-config/ folder in the Blob store's file
 // browser on Vercel; the page then asks for a new one. Files are not touched.
 //
+// Sign in with Google (optional): once logged in, the owner pastes a Google OAuth Client ID
+// on the page and signs in with Google once; that Gmail address becomes the only Google
+// account allowed in. The password keeps working as a backup.
+//
+// After any login the server hands out a session token (valid 30 days, signed with HMAC);
+// the page keeps that instead of the password. Changing the password ends all sessions.
+//
 // All requests send the password in the "x-drive-key" header, except the upload-token
 // request made by @vercel/blob/client, which carries it in clientPayload.
 //
@@ -21,10 +28,13 @@
 // POST /api/drive {action:"check"}                      -> verifies the password
 // POST /api/drive {action:"setpass", password}          -> first-time password (only while none exists)
 // POST /api/drive {action:"changepass", password}       -> new password (needs the current one)
+// POST /api/drive {action:"google", credential}         -> Google sign-in, returns a session
+// POST /api/drive {action:"linkgoogle", clientId, credential} / {action:"unlinkgoogle"}
+// Unauthenticated answers say {error:"auth", google:"<client id>"} so the page can show the button.
 // POST /api/drive {type:"blob.generate-client-token"..} -> handled by handleUpload (browser uploads
 //                                                          straight to Blob, so any size works)
 
-import { timingSafeEqual, scryptSync, randomBytes } from 'node:crypto';
+import { timingSafeEqual, scryptSync, randomBytes, createHmac, createHash } from 'node:crypto';
 import { list, del, put, createFolder } from '@vercel/blob';
 import { handleUpload } from '@vercel/blob/client';
 
@@ -57,14 +67,37 @@ function verify(pw, auth) {
   const hash = scryptSync(String(pw), Buffer.from(auth.salt, 'hex'), 32);
   return timingSafeEqual(hash, Buffer.from(auth.hash, 'hex'));
 }
-async function savePassword(pw) {
-  if (String(pw || '').length < 4) throw new Error('short');
-  const salt = randomBytes(16);
-  const auth = { salt: salt.toString('hex'), hash: scryptSync(String(pw), salt, 32).toString('hex') };
+async function saveConfig(auth) {
   const old = (await list({ prefix: CONFIG, limit: 100 })).blobs.map(b => b.url);
   await put(CONFIG + '.json', JSON.stringify(auth), { access: 'public', addRandomSuffix: true, contentType: 'application/json', cacheControlMaxAge: 60 });
   if (old.length) await del(old);
   authCache = auth;
+}
+async function savePassword(pw, current) {
+  if (String(pw || '').length < 4) throw new Error('short');
+  const salt = randomBytes(16);
+  await saveConfig({ ...(current || {}), salt: salt.toString('hex'), hash: scryptSync(String(pw), salt, 32).toString('hex') });
+}
+
+// ---- sessions: "s1.<expiry ms>.<hmac>" ----
+const SESSION_MS = 30 * 24 * 3600 * 1000;
+const secret = auth => createHash('sha256').update(process.env.BLOB_READ_WRITE_TOKEN + ':' + (auth.hash || auth.plain)).digest();
+const sign = (auth, exp) => createHmac('sha256', secret(auth)).update('s1.' + exp).digest('hex');
+function newSession(auth) { const exp = Date.now() + SESSION_MS; return 's1.' + exp + '.' + sign(auth, exp); }
+function checkSession(tok, auth) {
+  const m = /^s1\.(\d{10,16})\.([0-9a-f]{64})$/.exec(String(tok || ''));
+  return !!m && Number(m[1]) > Date.now() && sameText(m[2], sign(auth, m[1]));
+}
+const allowed = (key, auth) => checkSession(key, auth) || verify(key, auth);
+
+// ---- Google sign-in: verify the ID token with Google ----
+async function googleEmail(credential, clientId) {
+  if (!credential || !clientId) throw new Error('google');
+  const r = await fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(credential));
+  const t = await r.json().catch(() => ({}));
+  if (!r.ok || t.aud !== clientId || !/^(https:\/\/)?accounts\.google\.com$/.test(t.iss || '') ||
+      !(t.email_verified === true || t.email_verified === 'true') || !t.email) throw new Error('google');
+  return String(t.email).toLowerCase();
 }
 
 // Turns a user path into a safe relative path ("" for the root). Folders end with "/".
@@ -129,7 +162,7 @@ export default async function handler(req, res) {
     if (!auth) {                                         // first visit: the owner picks a password
       if (req.method === 'POST' && body.action === 'setpass') {
         await savePassword(body.password);
-        res.status(200).json({ ok: true });
+        res.status(200).json({ ok: true, session: newSession(authCache) });
       } else res.status(409).json({ error: 'newpass' });
       return;
     }
@@ -140,7 +173,7 @@ export default async function handler(req, res) {
         body,
         request: req,
         onBeforeGenerateToken: async (pathname, clientPayload) => {
-          if (!verify(clientPayload, auth)) throw new Error('auth');
+          if (!allowed(clientPayload, auth)) throw new Error('auth');
           if (!pathname.startsWith(ROOT) || clean(pathname.slice(ROOT.length)) !== pathname.slice(ROOT.length)) throw new Error('bad.path');
           return { addRandomSuffix: true, maximumSizeInBytes: 5 * 1024 * 1024 * 1024 };
         }
@@ -149,7 +182,18 @@ export default async function handler(req, res) {
       return;
     }
 
-    if (!verify(req.headers['x-drive-key'], auth)) { res.status(401).json({ error: 'auth' }); return; }
+    if (req.method === 'POST' && body.action === 'google') {
+      const g = auth.google;
+      if (!g) { res.status(409).json({ error: 'nogoogle' }); return; }
+      if (await googleEmail(body.credential, g.clientId) !== g.email) { res.status(403).json({ error: 'google.other' }); return; }
+      res.status(200).json({ ok: true, session: newSession(auth) });
+      return;
+    }
+
+    if (!allowed(req.headers['x-drive-key'], auth)) {
+      res.status(401).json({ error: 'auth', google: auth.google ? auth.google.clientId : undefined });
+      return;
+    }
 
     if (req.method === 'GET') {
       res.status(200).json(await listFolder(clean(req.query && req.query.path, true)));
@@ -157,10 +201,29 @@ export default async function handler(req, res) {
     }
     if (req.method !== 'POST') { res.status(405).json({ error: 'method' }); return; }
 
-    if (body.action === 'check' || body.action === 'setpass') { res.status(200).json({ ok: true }); return; }
+    if (body.action === 'check' || body.action === 'setpass') {
+      res.status(200).json({ ok: true, session: newSession(auth), google: auth.google ? auth.google.email : null });
+      return;
+    }
     if (body.action === 'changepass') {
       if (auth.plain) { res.status(409).json({ error: 'envpass' }); return; }
-      await savePassword(body.password);
+      await savePassword(body.password, auth);
+      res.status(200).json({ ok: true, session: newSession(authCache) });
+      return;
+    }
+    if (body.action === 'linkgoogle') {
+      if (auth.plain) { res.status(409).json({ error: 'envpass' }); return; }
+      const clientId = String(body.clientId || '').trim();
+      if (!/^[\w-]+\.apps\.googleusercontent\.com$/.test(clientId)) throw new Error('google');
+      const email = await googleEmail(body.credential, clientId);
+      await saveConfig({ ...auth, google: { clientId, email } });
+      res.status(200).json({ ok: true, email });
+      return;
+    }
+    if (body.action === 'unlinkgoogle') {
+      if (auth.plain) { res.status(409).json({ error: 'envpass' }); return; }
+      const { google, ...rest } = auth;
+      await saveConfig(rest);
       res.status(200).json({ ok: true });
       return;
     }
@@ -181,6 +244,7 @@ export default async function handler(req, res) {
   } catch (e) {
     const code = String(e && e.message || e);
     if (code === 'auth') { res.status(401).json({ error: 'auth' }); return; }
+    if (code === 'google') { res.status(400).json({ error: 'google' }); return; }
     if (code === 'short') { res.status(400).json({ error: 'short' }); return; }
     if (code === 'bad.path') { res.status(400).json({ error: 'bad.path' }); return; }
     console.error('drive error', e);

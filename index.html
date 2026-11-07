@@ -117,6 +117,16 @@ input:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(-
 .btnrow{display:flex;gap:8px;width:100%;max-width:340px;flex-wrap:wrap}
 .btnrow .btn{flex:1;min-width:140px}
 .foot{color:var(--muted);font-size:.8rem;text-align:center}
+.gbox{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:340px}
+#gBtn,#gLink{min-height:44px;display:flex;justify-content:center}
+.or{display:flex;align-items:center;gap:10px;width:100%;color:var(--muted);font-size:.85rem}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.menu{display:flex;flex-direction:column;gap:8px}
+.menu button{background:var(--soft);border-radius:12px;padding:12px 14px;text-align:right;font-weight:600;display:flex;flex-direction:column;gap:0}
+.menu button small{font-weight:400;color:var(--muted)}
+.help{font-size:.85rem;color:var(--muted);margin:0;padding-inline-start:18px}
+.help li{margin-bottom:4px}
+.dialog .card{max-height:90vh;overflow:auto}
 body.in .hero{padding:12px 16px;border-radius:16px}
 body.in .hero .feats,body.in .hero p{display:none}
 body.in .hero .logo{width:38px;height:38px;font-size:1.3rem;border-radius:11px}
@@ -138,7 +148,12 @@ body.in .hero h1{font-size:1.25rem;line-height:1.8}
   <form class="card auth" id="login" hidden>
     <span class="badge-ic">🔒</span>
     <h2>خوش آمدید</h2>
-    <p class="lead">اپنی فائلیں دیکھنے کے لیے پاس ورڈ درج کریں۔</p>
+    <div id="gLogin" class="gbox" hidden>
+      <p class="lead">اپنے Gmail اکاؤنٹ سے لاگ ان کریں۔</p>
+      <div id="gBtn"></div>
+      <div class="or"><span>یا پاس ورڈ سے</span></div>
+    </div>
+    <p class="lead" id="pwLead">اپنی فائلیں دیکھنے کے لیے پاس ورڈ درج کریں۔</p>
     <input class="field" id="pw" type="password" autocomplete="current-password" placeholder="پاس ورڈ" required>
     <button class="btn" id="loginBtn" type="submit">کھولیں</button>
     <div class="status err" id="loginMsg" hidden></div>
@@ -179,7 +194,7 @@ body.in .hero h1{font-size:1.25rem;line-height:1.8}
     <div class="tools">
       <input class="field" id="q" type="search" placeholder="🔍 تلاش کریں">
       <button class="btn ghost" id="refresh" title="دوبارہ لوڈ کریں">⟳</button>
-      <button class="btn ghost" id="chpass" title="پاس ورڈ بدلیں" aria-label="پاس ورڈ بدلیں">🔑</button>
+      <button class="btn ghost" id="chpass" title="سیٹنگز" aria-label="سیٹنگز">⚙️</button>
       <button class="btn ghost" id="logout" title="لاگ آؤٹ" aria-label="لاگ آؤٹ">🚪</button>
     </div>
     <div class="tabs" id="tabs" role="group" aria-label="قسم">
@@ -264,7 +279,8 @@ const when = d => { try { return new Date(d).toLocaleDateString('ur-PK', { day: 
 const dl = u => u + (u.includes('?') ? '&' : '?') + 'download=1';
 function showErr(t) { const m = $('err'); m.textContent = t || ''; m.hidden = !t; }
 const ERR = {
-  auth: 'پاس ورڈ غلط ہے۔', short: 'پاس ورڈ کم از کم 4 حروف کا ہو۔', 'bad.path': 'نام درست نہیں۔ \\ یا عجیب نشانات استعمال نہ کریں۔',
+  auth: 'پاس ورڈ غلط ہے۔', google: 'Google سے تصدیق نہیں ہو سکی۔ Client ID چیک کریں اور دوبارہ کوشش کریں۔',
+  'google.other': 'یہ Gmail اکاؤنٹ اجازت یافتہ نہیں۔ وہی Gmail استعمال کریں جو لگایا گیا تھا۔', nogoogle: 'Gmail لاگ ان ابھی نہیں لگا۔', short: 'پاس ورڈ کم از کم 4 حروف کا ہو۔', 'bad.path': 'نام درست نہیں۔ \\ یا عجیب نشانات استعمال نہ کریں۔',
   server: 'سرور سے رابطہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔', net: 'انٹرنیٹ کنکشن چیک کریں۔'
 };
 const errText = e => ERR[e && e.message] || ERR.server;
@@ -279,7 +295,7 @@ function screen(id) {
 }
 function showSetup() { screen('setup'); }
 function showNewPass(msg) { screen('newpass'); $('npMsg').textContent = msg || ''; $('npMsg').hidden = !msg; $('np1').focus(); }
-function showLogin(msg) {
+let showLogin = function (msg) {
   screen('login');
   $('loginMsg').textContent = msg || ''; $('loginMsg').hidden = !msg;
   $('pw').focus();
@@ -291,22 +307,60 @@ function route(e) {                     // server said something other than "ok"
   else { store.set('driveKey', ''); key = ''; showLogin(); }
 }
 
+let googleId = '';       // Google Client ID (from the server, when Gmail login is set up)
+let googleEmail = '';    // the Gmail address that may sign in
+function useSession(j) { if (j && j.session) { key = j.session; store.set('driveKey', key); } if (j && 'google' in j) googleEmail = j.google || ''; }
+
 async function start() {
   screen('boot');
   const j = await findBase();
   if (!j) { screen(''); showErr('سرور سے رابطہ نہیں ہو سکا۔ انٹرنیٹ چیک کر کے صفحہ دوبارہ کھولیں۔'); return; }
+  googleId = j.google && j.error === 'auth' ? j.google : '';
   if (j.error) { route(j.error); return; }
-  showDrive(); load();
+  useSession(j); showDrive(); load();
 }
 $('recheck').onclick = start;
+
+// ---- Google sign-in (Google Identity Services) ----
+let gisReady = null;
+function loadGis() {
+  return gisReady = gisReady || new Promise((ok, fail) => {
+    const sc = document.createElement('script'); sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true;
+    sc.onload = () => ok(window.google); sc.onerror = () => { gisReady = null; fail(new Error('gis')); };
+    document.head.appendChild(sc);
+  });
+}
+async function googleButton(el, clientId, onCredential) {
+  el.innerHTML = '<span class="spin"></span>';
+  try {
+    const g = await loadGis();
+    g.accounts.id.initialize({ client_id: clientId, callback: r => onCredential(r.credential), ux_mode: 'popup', auto_select: false });
+    el.innerHTML = '';
+    g.accounts.id.renderButton(el, { theme: 'filled_blue', size: 'large', shape: 'pill', text: 'signin_with', locale: 'ur', width: Math.min(320, el.clientWidth || 320) });
+  } catch (e) { el.textContent = 'Google کا بٹن لوڈ نہیں ہو سکا۔ انٹرنیٹ چیک کریں۔'; }
+}
+const showLoginBase = showLogin;
+showLogin = function (msg) {
+  showLoginBase(msg);
+  $('gLogin').hidden = !googleId;
+  $('pwLead').hidden = !!googleId;
+  if (googleId) googleButton($('gBtn'), googleId, async credential => {
+    try {
+      const r = await fetch(base + '/api/drive', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'google', credential }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || 'server');
+      useSession(j); showDrive(); load();
+    } catch (e) { showLoginBase(errText(e)); $('gLogin').hidden = false; $('pwLead').hidden = true; }
+  });
+};
 
 $('login').addEventListener('submit', async ev => {
   ev.preventDefault();
   const b = $('loginBtn'); b.disabled = true;
   key = $('pw').value;
   try {
-    await call('POST', { action: 'check' });
-    store.set('driveKey', key); $('pw').value = ''; showDrive(); load();
+    useSession(await call('POST', { action: 'check' }));
+    $('pw').value = ''; showDrive(); load();
   } catch (e) {
     if (e.message === 'setup' || e.message === 'newpass') route(e.message); else showLogin(errText(e));
   } finally { b.disabled = false; }
@@ -320,23 +374,83 @@ $('newpass').addEventListener('submit', async ev => {
   const b = $('npBtn'); b.disabled = true;
   try {
     key = p1;
-    await call('POST', { action: 'setpass', password: p1 });
-    store.set('driveKey', key); $('np1').value = $('np2').value = ''; showDrive(); load();
+    useSession(await call('POST', { action: 'setpass', password: p1 }));
+    $('np1').value = $('np2').value = ''; showDrive(); load();
+    setTimeout(() => offerGoogle(), 600);
   } catch (e) { showNewPass(errText(e)); }
   finally { b.disabled = false; }
 });
 
-$('logout').onclick = () => { store.set('driveKey', ''); key = ''; showLogin(); };
-$('chpass').onclick = async () => {
+$('logout').onclick = async () => {
+  store.set('driveKey', ''); key = '';
+  const j = await findBase(); googleId = j && j.google ? j.google : '';
+  showLogin();
+};
+
+// ---- settings ----
+async function changePassword() {
   const p1 = await ask('🔑 نیا پاس ورڈ', { input: true, ok: 'آگے', password: true });
   if (!p1) return;
   if (p1.length < 4) { showErr(ERR.short); return; }
   const p2 = await ask('نیا پاس ورڈ دوبارہ لکھیں', { input: true, ok: 'بدلیں', password: true });
   if (p2 === null) return;
   if (p1 !== p2) { showErr('دونوں پاس ورڈ ایک جیسے نہیں۔'); return; }
-  try { await call('POST', { action: 'changepass', password: p1 }); key = p1; store.set('driveKey', key); showErr(''); await ask('✓ پاس ورڈ بدل گیا', { ok: 'ٹھیک ہے' }); }
+  try { useSession(await call('POST', { action: 'changepass', password: p1 })); showErr(''); await ask('✓ پاس ورڈ بدل گیا', { ok: 'ٹھیک ہے' }); }
   catch (e) { showErr(e.message === 'envpass' ? 'پاس ورڈ Vercel کی سیٹنگ (DRIVE_PASSWORD) سے آ رہا ہے، وہیں بدلیں۔' : errText(e)); }
+}
+function sheet(html) {
+  const d = $('dialog'); d.innerHTML = '<div class="card">' + html + '</div>'; d.hidden = false;
+  const close = () => { d.hidden = true; d.innerHTML = ''; };
+  d.onclick = e => { if (e.target === d || e.target.closest('[data-close]')) close(); };
+  return close;
+}
+$('chpass').onclick = () => {
+  const close = sheet('<b>⚙️ سیٹنگز</b><div class="menu">' +
+    '<button id="mPass">🔑 پاس ورڈ بدلیں<small>نیا پاس ورڈ رکھیں</small></button>' +
+    (googleEmail
+      ? '<button id="mUnG">📧 Gmail لاگ ان ہٹائیں<small dir="ltr">' + esc(googleEmail) + '</small></button>'
+      : '<button id="mG">📧 Gmail سے لاگ ان لگائیں<small>پاس ورڈ کے بغیر، اپنے Google اکاؤنٹ سے کھولیں</small></button>') +
+    '</div><div class="row"><button class="btn ghost" data-close>بند کریں</button></div>');
+  $('mPass').onclick = () => { close(); changePassword(); };
+  if ($('mG')) $('mG').onclick = () => { close(); linkGoogle(); };
+  if ($('mUnG')) $('mUnG').onclick = async () => {
+    close();
+    if (!await ask('Gmail لاگ ان ہٹا دیں؟', { text: 'اس کے بعد صرف پاس ورڈ سے لاگ ان ہوگا۔', ok: 'ہٹائیں', danger: true })) return;
+    try { await call('POST', { action: 'unlinkgoogle' }); googleEmail = ''; } catch (e) { showErr(errText(e)); }
+  };
 };
+async function offerGoogle() {
+  if (googleEmail) return;
+  if (await ask('📧 Gmail سے لاگ ان؟', { text: 'چاہیں تو اب Gmail لاگ ان بھی لگا سکتے ہیں، تاکہ پاس ورڈ یاد رکھنے کی ضرورت نہ رہے۔ یہ بعد میں ⚙️ سیٹنگز سے بھی ہو سکتا ہے۔', ok: 'ابھی لگائیں', input: false, cancel: true })) linkGoogle();
+}
+function linkGoogle() {
+  const origin = location.origin;
+  const close = sheet('<b>📧 Gmail سے لاگ ان لگائیں</b>' +
+    '<p class="lead">اس کے لیے Google سے ایک مفت «Client ID» بنانی ہوتی ہے (صرف ایک بار، تقریباً 5 منٹ):</p>' +
+    '<ol class="help">' +
+    '<li><a href="https://console.cloud.google.com/auth/clients" target="_blank" rel="noopener">Google Cloud Console</a> کھولیں (اپنے Gmail سے)۔ پروجیکٹ نہ ہو تو نیا بنائیں۔</li>' +
+    '<li>اگر «Get started» آئے: ایپ کا نام <b>mydata</b> لکھیں، اپنا Gmail دیں، <b>External</b> چنیں، اور Create کریں۔</li>' +
+    '<li><b>Create client</b> دبائیں ← Application type: <b>Web application</b>۔</li>' +
+    '<li><b>Authorized JavaScript origins</b> میں یہ ڈالیں: <span class="tag">' + esc(origin) + '</span></li>' +
+    '<li>Create دبائیں اور جو <b>Client ID</b> ملے (آخر میں <span class="tag">.apps.googleusercontent.com</span>) اسے نیچے پیسٹ کریں۔</li>' +
+    '<li><b>Audience</b> میں جا کر <b>Publish app</b> کریں، یا Test users میں اپنا Gmail شامل کریں۔</li>' +
+    '</ol>' +
+    '<input class="field" id="gCid" dir="ltr" placeholder="xxxx.apps.googleusercontent.com" autocomplete="off">' +
+    '<div id="gLink"></div><div class="status err" id="gMsg" hidden></div>' +
+    '<div class="row"><button class="btn ghost" data-close>منسوخ</button></div>');
+  const msg = t => { $('gMsg').textContent = t || ''; $('gMsg').hidden = !t; };
+  $('gCid').oninput = () => {
+    const cid = $('gCid').value.trim(); msg('');
+    if (!/^[\w-]+\.apps\.googleusercontent\.com$/.test(cid)) { $('gLink').innerHTML = ''; return; }
+    googleButton($('gLink'), cid, async credential => {
+      try {
+        const j = await call('POST', { action: 'linkgoogle', clientId: cid, credential });
+        googleEmail = j.email; close();
+        await ask('✓ Gmail لاگ ان لگ گیا', { text: 'اب ' + j.email + ' سے لاگ ان ہو سکے گا۔ پاس ورڈ بھی بیک اپ کے طور پر چلتا رہے گا۔', ok: 'ٹھیک ہے' });
+      } catch (e) { msg(errText(e)); }
+    });
+  };
+}
 
 // ---- listing ----
 async function load() {
@@ -345,7 +459,7 @@ async function load() {
   crumbs();
   try { data = await call('GET', null, '?path=' + encodeURIComponent(path)); render(); }
   catch (e) {
-    if (e.message === 'auth') { store.set('driveKey', ''); showLogin(ERR.auth); return; }
+    if (e.message === 'auth') { store.set('driveKey', ''); if (e.info && e.info.google) googleId = e.info.google; showLogin(ERR.auth); return; }
     if (e.message === 'setup' || e.message === 'newpass') { route(e.message); return; }
     $('list').innerHTML = ''; showErr(errText(e));
   }
@@ -442,10 +556,10 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('viewer
 // ---- dialogs ----
 function ask(title, opts) {
   return new Promise(done => {
-    const d = $('dialog');
+    const d = $('dialog'); d.onclick = null;
     d.innerHTML = '<form class="card"><b>' + esc(title) + '</b>' + (opts.text ? '<p class="lead">' + esc(opts.text) + '</p>' : '') +
       (opts.input ? '<input class="field" id="dIn" required maxlength="100" autocomplete="off"' + (opts.password ? ' type="password"' : '') + '>' : '') +
-      '<div class="row"><button class="btn' + (opts.danger ? ' danger' : '') + '" type="submit">' + esc(opts.ok || 'ٹھیک ہے') + '</button>' + (opts.input || opts.danger ? '<button class="btn ghost" type="button" id="dNo">منسوخ</button>' : '') + '</div></form>';
+      '<div class="row"><button class="btn' + (opts.danger ? ' danger' : '') + '" type="submit">' + esc(opts.ok || 'ٹھیک ہے') + '</button>' + (opts.input || opts.danger || opts.cancel ? '<button class="btn ghost" type="button" id="dNo">' + (opts.cancel ? 'بعد میں' : 'منسوخ') + '</button>' : '') + '</div></form>';
     d.hidden = false;
     const close = v => { d.hidden = true; d.innerHTML = ''; done(v); };
     d.querySelector('form').onsubmit = e => { e.preventDefault(); close(opts.input ? $('dIn').value.trim() : true); };
