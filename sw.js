@@ -1,5 +1,5 @@
 // Offline support: the app shell is cached so the camera opens without internet.
-const CACHE = 'lamha-v1';
+const CACHE = 'lamha-v2';
 const SHELL = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-512-maskable.png', 'apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {

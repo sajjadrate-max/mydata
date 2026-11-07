@@ -51,7 +51,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 .strip::-webkit-scrollbar{display:none}
 .fchip{flex:none;width:62px;height:62px;border-radius:50%;scroll-snap-align:center;border:2px solid rgba(255,255,255,.55);overflow:hidden;position:relative;transition:transform .15s}
 .fchip.sel{border-color:#fff;transform:scale(1.08)}
-.fchip span{position:absolute;inset:0;background-size:cover;background-position:center}
+.fchip canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .row{display:flex;align-items:center;justify-content:space-around;margin-top:10px;direction:ltr}
 .shutter{width:82px;height:82px;border-radius:50%;position:relative;touch-action:none}
 .shutter .ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(#EF4444 var(--p,0%),rgba(255,255,255,.95) 0);-webkit-mask:radial-gradient(circle,transparent 33px,#000 34px);mask:radial-gradient(circle,transparent 33px,#000 34px)}
@@ -417,13 +417,13 @@ function sampleImage() {
   return c;
 }
 function buildStrip(el, onPick) {
-  const base = sampleImage();
   el.innerHTML = '';
   for (const f of FILTERS) {
     const b = document.createElement('button'); b.className = 'fchip'; b.dataset.f = f.id; b.title = f.name; b.setAttribute('aria-label', f.name);
-    const s = document.createElement('span'); s.style.backgroundImage = 'url(' + render(base, f.id, false, 96, 96).toDataURL() + ')';
-    b.appendChild(s); el.appendChild(b);
+    const c = document.createElement('canvas'); c.width = c.height = CHIP;
+    b.appendChild(c); el.appendChild(b);
   }
+  paintStrip(el, sampleImage());
   el.onclick = e => { const b = e.target.closest('.fchip'); if (b) { onPick(b.dataset.f); b.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' }); } };
   let t; el.addEventListener('scroll', () => {
     clearTimeout(t); t = setTimeout(() => {
@@ -433,6 +433,32 @@ function buildStrip(el, onPick) {
       if (best && best.dataset.f !== el.dataset.sel) onPick(best.dataset.f, true);
     }, 90);
   }, { passive: true });
+}
+// Each chip shows the real picture (live camera, or the photo being edited) through its filter.
+const CHIP = 96;
+function squareOf(src, mirror, crop) {
+  const sw = src.videoWidth || src.width, sh = src.videoHeight || src.height;
+  if (!sw || !sh) return null;
+  const cr = crop || { x: 0, y: 0, w: sw, h: sh }, side = Math.min(cr.w, cr.h);
+  const c = mk(CHIP, CHIP), x = c.getContext('2d');
+  if (mirror) { x.translate(CHIP, 0); x.scale(-1, 1); }
+  x.drawImage(src, cr.x + (cr.w - side) / 2, cr.y + (cr.h - side) / 2, side, side, 0, 0, CHIP, CHIP);
+  return c;
+}
+function paintStrip(el, base) {
+  if (!base) return;
+  for (const b of el.children) {
+    const out = b.firstChild; if (!out) continue;
+    out.getContext('2d').drawImage(render(base, b.dataset.f, false, CHIP, CHIP), 0, 0);
+  }
+}
+let chipT = 0;
+function liveChips() {                  // refresh the camera strip ~2× a second
+  clearInterval(chipT);
+  chipT = setInterval(() => {
+    if ($('cam').hidden || document.hidden || recording || !v.videoWidth) return;
+    paintStrip($('strip'), squareOf(v, facing === 'user' && mirrorSelfie, null));
+  }, 450);
 }
 function markStrip(el, id, scroll) {
   el.dataset.sel = id;
@@ -647,6 +673,7 @@ function openEditor(src, mirror, crop) {
   raw = src; rawMirror = !!mirror; rawCrop = crop || null; efilter = filterId;
   items = []; strokes = []; ov.innerHTML = ''; setDraw(false);
   show('edit'); layoutBox(); drawPreview(); redrawStrokes();
+  paintStrip($('strip2'), squareOf(raw, rawMirror, rawCrop));
   markStrip($('strip2'), efilter, true); $('estrip').hidden = true;
   history.pushState({ lamha: 'edit' }, '');
 }
@@ -953,7 +980,7 @@ buildStrip($('strip2'), (id, fromScroll) => setEFilter(id, !fromScroll));
 async function boot() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { permissionHelp(null); return; }
   show('cam');
-  if (await startCam()) { markStrip($('strip'), filterId, true); refreshMemBtn(); }
+  if (await startCam()) { markStrip($('strip'), filterId, true); refreshMemBtn(); liveChips(); }
 }
 $('startBtn').onclick = boot;
 // If the camera was allowed before, open it straight away.
