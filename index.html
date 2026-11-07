@@ -399,7 +399,8 @@ const v = $('v');
 
 async function startCam() {
   if (stream) stream.getTracks().forEach(t => t.stop());
-  const want = { facingMode: { ideal: facing }, width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 30 } };
+  // 1080p keeps the preview, face tracking and recording fast; photos still use the full sensor via takePhoto().
+  const want = { facingMode: { ideal: facing }, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } };
   try {
     stream = await navigator.mediaDevices.getUserMedia({ video: want, audio: false });
   } catch (e) {
@@ -467,7 +468,7 @@ function buildStrip(el, onPick) {
   }, { passive: true });
 }
 // Each chip shows the real picture (live camera, or the photo being edited) through its filter.
-const CHIP = 96;
+const CHIP = 72;
 function squareOf(src, mirror, crop) {
   const sw = src.videoWidth || src.width, sh = src.videoHeight || src.height;
   if (!sw || !sh) return null;
@@ -515,6 +516,14 @@ function buildCats() {
 }
 $('cats').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; cat = b.dataset.c; store.set('cat', cat); buildCats(); buildLensStrip(); };
 // A button shows the live camera through its look; face effects show a cartoon face.
+// Buttons only need the colour look: one cheap canvas-filter draw, no per-pixel passes.
+function renderLite(src, fid) {
+  const f = F(fid), c = mk(CHIP, CHIP), x = c.getContext('2d');
+  if (ctxFilterOK) x.filter = f.css; x.drawImage(src, 0, 0, CHIP, CHIP); x.filter = 'none';
+  if (!ctxFilterOK) cssByHand(c, f.css);
+  if (f.vignette) vignette(c, f.vignette);
+  return c;
+}
 function paintChip(cv, it, base) {
   if (!cv || !it) return;
   const x = cv.getContext('2d');
@@ -522,9 +531,9 @@ function paintChip(cv, it, base) {
     if (cv.dataset.done) return;
     FX.cartoonBase(x, CHIP, CHIP); (it.fx.draw2d || it.fx.draw)(x, CHIP, CHIP, 1.3, FX.cartoon); cv.dataset.done = 1; return;
   }
-  if (base) x.drawImage(render(base, it.filter, false, CHIP, CHIP), 0, 0);
+  if (base) x.drawImage(renderLite(base, it.filter), 0, 0);
   else if (it.fx) FX.decoBase(x, CHIP, CHIP);
-  else x.drawImage(render(sampleImage(), it.filter, false, CHIP, CHIP), 0, 0);
+  else x.drawImage(renderLite(sampleImage(), it.filter), 0, 0);
   if (it.fx) { x.save(); it.fx.draw(x, CHIP, CHIP, chipTime, null); x.restore(); }
 }
 function buildLensStrip() {
@@ -597,15 +606,16 @@ function liveChips() {                  // refresh the buttons with the live cam
     if ($('cam').hidden || document.hidden || recording || !v.videoWidth) return;
     lastSquare = squareOf(v, facing === 'user' && mirrorSelfie, null); chipTime = performance.now() / 1000;
     if (window.FX3D) { const d = mk(1, 1), dx = d.getContext('2d'); dx.drawImage(lastSquare, 0, 0, 1, 1); const [r, g, b] = dx.getImageData(0, 0, 1, 1).data; window.FX3D.setLight(r, g, b); }
-    for (const b of $('strip').querySelectorAll('.fchip')) paintChip(b.firstChild, item(b.dataset.f), lastSquare);
+    const el = $('strip'), L = el.scrollLeft - 70, Rr = el.scrollLeft + el.clientWidth + 70;
+    for (const b of el.querySelectorAll('.fchip')) if (b.offsetLeft + b.offsetWidth > L && b.offsetLeft < Rr) paintChip(b.firstChild, item(b.dataset.f), lastSquare);   // only the ones on screen
     paintChip($('lensThumb'), lens, lastSquare);
-  }, 550);
+  }, 900);
 }
 
 // ---- effect layer over the camera, and face tracking ----
 const fxc = $('fxc');
 let fxT = 0, faceLm = null, faceState = 'off', landmarker = null, faceLoad = null, lastVT = -1, fxCleared = true, hintText = null;
-function sizeFx() { const d = Math.min(1.5, devicePixelRatio || 1); fxc.width = Math.round(innerWidth * d); fxc.height = Math.round(innerHeight * d); }
+function sizeFx() { const d = Math.min(1.25, devicePixelRatio || 1); fxc.width = Math.round(innerWidth * d); fxc.height = Math.round(innerHeight * d); }
 sizeFx(); addEventListener('resize', sizeFx);
 // The part of a frame that fills the screen (the preview uses object-fit: cover).
 function viewCrop(sw, sh, dz) {
@@ -614,10 +624,41 @@ function viewCrop(sw, sh, dz) {
   w /= dz || 1; h /= dz || 1;
   return { x: (sw - w) / 2, y: (sh - h) / 2, w, h };
 }
+// Face tracking runs in a background worker (lib/face-worker.js) so the screen stays smooth;
+// if a phone can't run it there, it falls back to the page itself.
+let faceWorker = null, workerBusy = false, frameId = 0;
+const pending = new Map();
+function useLandmarks(lm, vw, vh, c, mir) {
+  if (!lm) { faceLm = null; return; }
+  const out = new Array(lm.length / 3);
+  for (let i = 0; i < out.length; i++) {
+    let px = (lm[i * 3] * vw - c.x) / c.w; if (mir) px = 1 - px;
+    out[i] = { x: px, y: (lm[i * 3 + 1] * vh - c.y) / c.h, z: lm[i * 3 + 2] * vw / c.w };
+  }
+  faceLm = out;
+}
+function startWorker() {
+  return new Promise((ok, no) => {
+    let w;
+    try { w = new Worker('lib/face-worker.js'); } catch (e) { no(e); return; }
+    const t = setTimeout(() => { w.terminate(); no(new Error('worker timeout')); }, 45000);
+    w.onmessage = e => {
+      const m = e.data;
+      if (m.type === 'ready') { clearTimeout(t); faceWorker = w; ok(); }
+      else if (m.type === 'error') { clearTimeout(t); w.terminate(); no(new Error(m.msg)); }
+      else if (m.type === 'lm') { workerBusy = false; const f = pending.get(m.id); pending.delete(m.id); if (f) useLandmarks(m.lm, f.vw, f.vh, f.c, f.mir); }
+    };
+    w.onerror = e => { clearTimeout(t); w.terminate(); no(e); };
+    w.postMessage({ type: 'init', wasm: new URL('lib/wasm', location.href).href, model: new URL('lib/face_landmarker.task', location.href).href });
+  });
+}
 function ensureFace() {
-  if (landmarker || faceLoad) return faceLoad;
+  if (landmarker || faceWorker || faceLoad) return faceLoad;
   faceState = 'loading';
   faceLoad = (async () => {
+    if (window.Worker && window.OffscreenCanvas && 'createImageBitmap' in window) {
+      try { await startWorker(); faceState = 'ready'; return; } catch (e) { console.warn('face worker', e); }
+    }
     try {
       const { FilesetResolver, FaceLandmarker } = await import('./lib/vision_bundle.mjs');
       const files = await FilesetResolver.forVisionTasks(new URL('lib/wasm', location.href).href);
@@ -642,8 +683,20 @@ function ensure3D() {
   if (window.FX3D || load3D) return load3D;
   return load3D = import('./lib/fx3d.js').catch(e => { console.warn('3D', e); load3D = null; toast('3D اثر اس فون پر نہیں چل سکا'); });
 }
+let lastDetect = 0;
 function detectFace(now) {
-  if (!landmarker || v.readyState < 2 || v.currentTime === lastVT) return;
+  if (faceWorker) {
+    if (workerBusy || v.readyState < 2 || v.currentTime === lastVT || now - lastDetect < 33) return;
+    lastVT = v.currentTime; lastDetect = now; workerBusy = true;
+    const vw = v.videoWidth, vh = v.videoHeight, id = ++frameId;
+    pending.set(id, { vw, vh, c: viewCrop(vw, vh, digitalZoom), mir: facing === 'user' && mirrorSelfie });
+    createImageBitmap(v, { resizeWidth: 480, resizeHeight: Math.round(480 * vh / vw) })
+      .then(bm => faceWorker.postMessage({ type: 'frame', id, ts: now, bitmap: bm }, [bm]))
+      .catch(() => { workerBusy = false; pending.delete(id); });
+    return;
+  }
+  if (!landmarker || v.readyState < 2 || v.currentTime === lastVT || now - lastDetect < 45) return;
+  lastDetect = now;
   lastVT = v.currentTime;
   let r; try { r = landmarker.detectForVideo(v, now); } catch (e) { return; }
   const lm = r && r.faceLandmarks && r.faceLandmarks[0];
@@ -1081,7 +1134,7 @@ async function compose() {
   busy(true, 'بہترین کوالٹی میں بن رہی ہے…'); await sleep(30);
   try {
     let { w, h } = srcSize();
-    const MAXPX = 16e6;                       // keep within phone canvas limits
+    const MAXPX = 12.5e6;                     // keep within phone canvas limits and fast
     if (w * h > MAXPX) { const k = Math.sqrt(MAXPX / (w * h)); w *= k; h *= k; }
     const c = render(raw, efilter, rawMirror, w, h, rawCrop), x = c.getContext('2d');
     drawSnap(c, efx);

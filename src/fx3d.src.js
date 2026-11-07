@@ -172,7 +172,7 @@ function init() {
 // The lenses reflect what the camera sees (a wide, flipped copy of the picture).
 let lastEnv = 0;
 function updateEnv(video, now) {
-  if (!renderer || !video || !video.videoWidth || now - lastEnv < 350) return;
+  if (!renderer || !video || !video.videoWidth || now - lastEnv < 1000) return;   // reflections refresh once a second
   lastEnv = now;
   if (!envCanvas) { envCanvas = document.createElement('canvas'); envCanvas.width = 256; envCanvas.height = 128; envTex = new THREE.CanvasTexture(envCanvas); envTex.mapping = THREE.EquirectangularReflectionMapping; envTex.colorSpace = THREE.SRGBColorSpace; }
   const x = envCanvas.getContext('2d');
@@ -208,7 +208,7 @@ const ANCHOR = { dark: 168, aviator: 168, cap: 10 };
 function draw(ids, ctx, W, H, t, face) {
   if (!face || !face[454]) return;
   init();
-  const k = Math.min(1, 2048 / Math.max(W, H));
+  const k = Math.min(1, (W * H > 2e6 ? 2048 : 900) / Math.max(W, H));   // live preview at ~900px, photos up to 2048
   renderer.setSize(Math.round(W * k), Math.round(H * k), false);
   camera.left = 0; camera.right = W; camera.top = 0; camera.bottom = -H; camera.updateProjectionMatrix();
   const fr = headFrame(face, W, H);

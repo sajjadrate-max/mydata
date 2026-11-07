@@ -10,12 +10,24 @@
   const URDU = '"Noto Nastaliq Urdu","Noto Naskh Arabic",serif';
 
   // ---------- shapes ----------
+  // Glows are pre-drawn once into small images (sprites): canvas shadowBlur on every
+  // particle, every frame, was the slowest part on phones.
+  const sprites = {};
+  function glowSprite(color, glow) {
+    const k = color + '|' + glow; if (sprites[k]) return sprites[k];
+    const S = 64, c = document.createElement('canvas'); c.width = c.height = S; const g = c.getContext('2d');
+    const rg = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2); rg.addColorStop(0, glow); rg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.globalAlpha = .55; g.fillStyle = rg; g.fillRect(0, 0, S, S); g.globalAlpha = 1;
+    g.translate(S / 2, S / 2); g.fillStyle = color; g.beginPath();
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, rr = i % 2 ? S * .09 : S * .36; g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+    g.closePath(); g.fill();
+    return sprites[k] = c;
+  }
   function sparkle(x, c, y, r, rot, color, glow) {
-    x.save(); x.translate(c, y); x.rotate(rot || 0);
-    x.shadowColor = glow || color; x.shadowBlur = r * 1.6;
-    x.fillStyle = color; x.beginPath();
-    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, rr = i % 2 ? r * .22 : r; x.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
-    x.closePath(); x.fill(); x.restore();
+    if (r <= .3) return;
+    const sp = glowSprite(color, glow || color), d = r / .36;
+    if (rot) { x.save(); x.translate(c, y); x.rotate(rot); x.drawImage(sp, -d / 2, -d / 2, d, d); x.restore(); }
+    else x.drawImage(sp, c - d / 2, y - d / 2, d, d);
   }
   function heart(x, cx, cy, s, color) {
     x.save(); x.translate(cx, cy); x.scale(s / 32, s / 32); x.fillStyle = color;
@@ -25,7 +37,7 @@
   }
   function butterfly(x, cx, cy, s, flap, rot, c1, c2) {
     x.save(); x.translate(cx, cy); x.rotate(rot);
-    x.shadowColor = c1; x.shadowBlur = s * .6;
+    x.drawImage(glowSprite('rgba(0,0,0,0)', c1), -s, -s, s * 2, s * 2);
     for (const side of [-1, 1]) {
       x.save(); x.scale(side * Math.max(.15, Math.abs(Math.cos(flap))), 1);
       const g = x.createRadialGradient(s * .3, -s * .2, 0, s * .3, -s * .2, s * .7);
@@ -204,7 +216,7 @@
   } });
   add('hearts', 'دل', 'deco', { draw(x, W, H, t) {
     const m = M(W, H);
-    rising(x, W, H, t, 18, 1.2, (px, py, i) => { x.save(); x.globalAlpha = .85; x.shadowColor = '#ff4d8d'; x.shadowBlur = m * .03; heart(x, px, py, m * (.04 + rnd(i, 5) * .05), ['#ff2e63', '#ff7aa8', '#ffffff', '#f43f5e'][i % 4]); x.restore(); });
+    rising(x, W, H, t, 18, 1.2, (px, py, i) => { x.save(); x.globalAlpha = .85; heart(x, px, py, m * (.04 + rnd(i, 5) * .05), ['#ff2e63', '#ff7aa8', '#ffffff', '#f43f5e'][i % 4]); x.restore(); });
   } });
   add('snow', 'برف', 'deco', { filter: 'cool', draw(x, W, H, t) {
     const m = M(W, H); x.fillStyle = '#fff';
