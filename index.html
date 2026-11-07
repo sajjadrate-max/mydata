@@ -92,38 +92,83 @@ input:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(-
 .dialog{position:fixed;inset:0;background:var(--scrim);z-index:20;display:flex;align-items:center;justify-content:center;padding:20px}
 .dialog .card{width:min(420px,100%)}
 .dialog .row{display:flex;gap:8px;justify-content:flex-start;flex-wrap:wrap}
-.setup ol{margin:0;padding-inline-start:22px}
-.setup code{direction:ltr;unicode-bidi:embed;background:var(--soft);padding:0 6px;border-radius:6px;font-size:.88rem}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid currentColor;border-left-color:transparent;border-radius:50%;animation:r .8s linear infinite}
 @keyframes r{to{transform:rotate(360deg)}}
 .drop{outline:3px dashed var(--accent);outline-offset:-8px}
+.hero{background:linear-gradient(135deg,#1F4E79,#0E2A47);color:#fff;border-radius:20px;padding:20px 20px 18px;display:flex;flex-direction:column;gap:6px;box-shadow:0 6px 20px rgba(14,42,71,.25)}
+.hero .row1{display:flex;align-items:center;gap:12px}
+.hero .logo{width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:1.7rem;flex:none}
+.hero h1{color:#fff;font-size:1.5rem;line-height:2}
+.hero p{margin:0;color:rgba(255,255,255,.82);font-size:.92rem}
+.feats{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.feats span{background:rgba(255,255,255,.12);border-radius:999px;padding:2px 12px;font-size:.8rem;color:#fff}
+.auth{align-items:center;text-align:center;padding:26px 20px;gap:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.auth .badge-ic{width:64px;height:64px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:1.9rem}
+.auth h2{margin:0;font-size:1.2rem}
+.auth .lead{max-width:360px}
+.auth .field{text-align:center;max-width:340px}
+.auth .btn{width:100%;max-width:340px;padding:13px}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;text-align:right;width:100%;max-width:420px}
+.steps li{display:flex;gap:12px;align-items:flex-start}
+.steps .n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem}
+.steps li div{padding-top:2px}
+.steps small{display:block;color:var(--muted);font-size:.85rem}
+.tag{display:inline-block;direction:ltr;background:var(--soft);border-radius:6px;padding:0 8px;font-weight:700;font-size:.88rem}
+.btnrow{display:flex;gap:8px;width:100%;max-width:340px;flex-wrap:wrap}
+.btnrow .btn{flex:1;min-width:140px}
+.foot{color:var(--muted);font-size:.8rem;text-align:center}
+body.in .hero{padding:12px 16px;border-radius:16px}
+body.in .hero .feats,body.in .hero p{display:none}
+body.in .hero .logo{width:38px;height:38px;font-size:1.3rem;border-radius:11px}
+body.in .hero h1{font-size:1.25rem;line-height:1.8}
+.tools .btn.ghost{padding:9px 13px;flex:none}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top">
-    <h1>☁️ میرا ڈیٹا</h1>
-  </div>
-  <p class="lead">ویڈیوز، تصویریں، PDF اور ہر قسم کی فائلیں انٹرنیٹ (کلاؤڈ) پر محفوظ کریں — موبائل کی میموری استعمال نہیں ہوتی۔ جتنے چاہیں فولڈر بنائیں، فولڈر کے اندر فولڈر بھی۔</p>
+  <header class="hero">
+    <div class="row1"><span class="logo">☁️</span><div><h1>میرا ڈیٹا</h1><p>آپ کی فائلیں، محفوظ اور آن لائن</p></div></div>
+    <div class="feats"><span>🔒 پاس ورڈ سے محفوظ</span><span>📁 لامحدود فولڈر</span><span>📱 موبائل میموری خالی</span></div>
+  </header>
+
+  <!-- Checking -->
+  <div class="card auth" id="boot"><span class="spin" style="width:28px;height:28px"></span><span class="lead">رابطہ ہو رہا ہے…</span></div>
 
   <!-- Password -->
-  <form class="card" id="login" hidden>
-    <label for="pw" style="font-weight:600">🔒 پاس ورڈ درج کریں</label>
-    <input class="field" id="pw" type="password" autocomplete="current-password" required>
+  <form class="card auth" id="login" hidden>
+    <span class="badge-ic">🔒</span>
+    <h2>خوش آمدید</h2>
+    <p class="lead">اپنی فائلیں دیکھنے کے لیے پاس ورڈ درج کریں۔</p>
+    <input class="field" id="pw" type="password" autocomplete="current-password" placeholder="پاس ورڈ" required>
     <button class="btn" id="loginBtn" type="submit">کھولیں</button>
     <div class="status err" id="loginMsg" hidden></div>
   </form>
 
-  <!-- Setup help, shown when the server isn't configured yet -->
-  <div class="card setup" id="setup" hidden>
-    <b>⚙️ پہلی بار سیٹ اپ (صرف ایک بار)</b>
-    <p class="lead">فائلیں Vercel Blob کلاؤڈ اسٹوریج میں محفوظ ہوں گی۔ Vercel ڈیش بورڈ میں یہ کریں:</p>
-    <ol>
-      <li><b>Storage</b> ← <b>Create</b> ← <b>Blob</b> منتخب کریں، اور اسے اس پراجیکٹ (mydata) سے جوڑ دیں۔ اس سے <code>BLOB_READ_WRITE_TOKEN</code> خود بن جائے گا۔</li>
-      <li><b>Settings</b> ← <b>Environment Variables</b> میں نیا ویری ایبل <code>DRIVE_PASSWORD</code> بنائیں اور اپنا پاس ورڈ لکھیں۔</li>
-      <li><b>Deployments</b> میں جا کر <b>Redeploy</b> کریں، پھر یہ صفحہ دوبارہ کھولیں۔</li>
+  <!-- First time: create the password -->
+  <form class="card auth" id="newpass" hidden>
+    <span class="badge-ic">🔑</span>
+    <h2>اپنا پاس ورڈ بنائیں</h2>
+    <p class="lead">سب کچھ تیار ہے۔ اب ایک پاس ورڈ بنائیں۔ آپ کی فائلیں صرف اسی سے کھلیں گی، اس لیے اسے یاد رکھیں۔</p>
+    <input class="field" id="np1" type="password" autocomplete="new-password" placeholder="نیا پاس ورڈ (کم از کم 4 حروف)" minlength="4" required>
+    <input class="field" id="np2" type="password" autocomplete="new-password" placeholder="دوبارہ لکھیں" minlength="4" required>
+    <button class="btn" id="npBtn" type="submit">پاس ورڈ محفوظ کریں</button>
+    <div class="status err" id="npMsg" hidden></div>
+  </form>
+
+  <!-- Setup: storage not connected yet -->
+  <div class="card auth" id="setup" hidden>
+    <span class="badge-ic">🗄️</span>
+    <h2>بس ایک قدم باقی ہے</h2>
+    <p class="lead">فائلیں رکھنے کے لیے اسٹوریج جوڑنا ہے۔ یہ صرف ایک بار کرنا ہے، تقریباً 1 منٹ کا کام۔</p>
+    <ol class="steps">
+      <li><span class="n">1</span><div>Vercel میں <b>mydata</b> پراجیکٹ کھولیں اور <span class="tag">Storage</span> پر جائیں۔</div></li>
+      <li><span class="n">2</span><div><span class="tag">Create</span> دبائیں، پھر <span class="tag">Blob</span> منتخب کریں۔<small>نام کچھ بھی دیں۔ پوچھے تو Public چنیں، اور پراجیکٹ mydata سے جوڑ دیں۔</small></div></li>
+      <li><span class="n">3</span><div><span class="tag">Deployments</span> میں سب سے اوپر والی کے ⋯ پر دبا کر <span class="tag">Redeploy</span> کریں۔</div></li>
     </ol>
-    <div class="status info" id="setupMissing"></div>
+    <div class="btnrow">
+      <a class="btn" href="https://vercel.com/dashboard" target="_blank" rel="noopener" style="text-decoration:none">Vercel کھولیں ↗</a>
+      <button class="btn ghost" id="recheck" type="button">⟳ دوبارہ چیک کریں</button>
+    </div>
   </div>
 
   <div class="status err" id="err" hidden></div>
@@ -132,9 +177,10 @@ input:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(-
   <section id="drive" hidden style="display:flex;flex-direction:column;gap:14px">
     <nav class="crumbs" id="crumbs" aria-label="فولڈر کا راستہ"></nav>
     <div class="tools">
-      <input class="field" id="q" type="search" placeholder="🔍 اس فولڈر میں تلاش کریں">
+      <input class="field" id="q" type="search" placeholder="🔍 تلاش کریں">
       <button class="btn ghost" id="refresh" title="دوبارہ لوڈ کریں">⟳</button>
-      <button class="btn ghost" id="logout" title="لاگ آؤٹ">🔓 باہر</button>
+      <button class="btn ghost" id="chpass" title="پاس ورڈ بدلیں" aria-label="پاس ورڈ بدلیں">🔑</button>
+      <button class="btn ghost" id="logout" title="لاگ آؤٹ" aria-label="لاگ آؤٹ">🚪</button>
     </div>
     <div class="tabs" id="tabs" role="group" aria-label="قسم">
       <button data-k="all" aria-pressed="true">سب</button>
@@ -195,7 +241,7 @@ async function findBase() {
     try {
       const r = await fetch(b + '/api/drive', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-drive-key': key || '-' }, body: '{"action":"check"}' });
       const j = await r.json();
-      if (j && (j.ok || j.error === 'auth' || j.error === 'setup')) { base = b; store.set('driveBase', b); return j; }
+      if (j && (j.ok || ['auth', 'setup', 'newpass'].includes(j.error))) { base = b; store.set('driveBase', b); return j; }
     } catch (e) {}
   }
   return null;
@@ -218,31 +264,41 @@ const when = d => { try { return new Date(d).toLocaleDateString('ur-PK', { day: 
 const dl = u => u + (u.includes('?') ? '&' : '?') + 'download=1';
 function showErr(t) { const m = $('err'); m.textContent = t || ''; m.hidden = !t; }
 const ERR = {
-  auth: 'پاس ورڈ غلط ہے۔', 'bad.path': 'نام درست نہیں۔ \\ یا عجیب نشانات استعمال نہ کریں۔',
+  auth: 'پاس ورڈ غلط ہے۔', short: 'پاس ورڈ کم از کم 4 حروف کا ہو۔', 'bad.path': 'نام درست نہیں۔ \\ یا عجیب نشانات استعمال نہ کریں۔',
   server: 'سرور سے رابطہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔', net: 'انٹرنیٹ کنکشن چیک کریں۔'
 };
 const errText = e => ERR[e && e.message] || ERR.server;
 
 // ---- screens ----
-function showSetup(missing) {
-  $('login').hidden = true; $('drive').hidden = true; $('fab').hidden = true; $('setup').hidden = false;
-  $('setupMissing').textContent = 'ابھی یہ موجود نہیں: ' + (missing || []).join('، ');
+const SCREENS = ['boot', 'setup', 'login', 'newpass', 'drive'];
+function screen(id) {
+  for (const x of SCREENS) $(x).hidden = x !== id;
+  $('fab').hidden = id !== 'drive';
+  document.body.classList.toggle('in', id === 'drive');
+  if (id !== 'drive') showErr('');
 }
+function showSetup() { screen('setup'); }
+function showNewPass(msg) { screen('newpass'); $('npMsg').textContent = msg || ''; $('npMsg').hidden = !msg; $('np1').focus(); }
 function showLogin(msg) {
-  $('setup').hidden = true; $('drive').hidden = true; $('fab').hidden = true; $('login').hidden = false;
+  screen('login');
   $('loginMsg').textContent = msg || ''; $('loginMsg').hidden = !msg;
   $('pw').focus();
 }
-function showDrive() { $('setup').hidden = true; $('login').hidden = true; $('drive').hidden = false; $('fab').hidden = false; }
+function showDrive() { screen('drive'); }
+function route(e) {                     // server said something other than "ok"
+  if (e === 'setup') showSetup();
+  else if (e === 'newpass') showNewPass();
+  else { store.set('driveKey', ''); key = ''; showLogin(); }
+}
 
 async function start() {
-  $('err').hidden = true;
+  screen('boot');
   const j = await findBase();
-  if (!j) { showErr('سرور نہیں ملا۔ انٹرنیٹ چیک کریں یا بعد میں کوشش کریں۔'); return; }
-  if (j.error === 'setup') { showSetup(j.missing); return; }
-  if (j.error === 'auth') { store.set('driveKey', ''); key = ''; showLogin(); return; }
+  if (!j) { screen(''); showErr('سرور سے رابطہ نہیں ہو سکا۔ انٹرنیٹ چیک کر کے صفحہ دوبارہ کھولیں۔'); return; }
+  if (j.error) { route(j.error); return; }
   showDrive(); load();
 }
+$('recheck').onclick = start;
 
 $('login').addEventListener('submit', async ev => {
   ev.preventDefault();
@@ -252,10 +308,35 @@ $('login').addEventListener('submit', async ev => {
     await call('POST', { action: 'check' });
     store.set('driveKey', key); $('pw').value = ''; showDrive(); load();
   } catch (e) {
-    if (e.message === 'setup') showSetup(e.info && e.info.missing); else showLogin(errText(e));
+    if (e.message === 'setup' || e.message === 'newpass') route(e.message); else showLogin(errText(e));
   } finally { b.disabled = false; }
 });
+
+$('newpass').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const p1 = $('np1').value, p2 = $('np2').value;
+  if (p1.length < 4) { showNewPass(ERR.short); return; }
+  if (p1 !== p2) { showNewPass('دونوں پاس ورڈ ایک جیسے نہیں۔'); return; }
+  const b = $('npBtn'); b.disabled = true;
+  try {
+    key = p1;
+    await call('POST', { action: 'setpass', password: p1 });
+    store.set('driveKey', key); $('np1').value = $('np2').value = ''; showDrive(); load();
+  } catch (e) { showNewPass(errText(e)); }
+  finally { b.disabled = false; }
+});
+
 $('logout').onclick = () => { store.set('driveKey', ''); key = ''; showLogin(); };
+$('chpass').onclick = async () => {
+  const p1 = await ask('🔑 نیا پاس ورڈ', { input: true, ok: 'آگے', password: true });
+  if (!p1) return;
+  if (p1.length < 4) { showErr(ERR.short); return; }
+  const p2 = await ask('نیا پاس ورڈ دوبارہ لکھیں', { input: true, ok: 'بدلیں', password: true });
+  if (p2 === null) return;
+  if (p1 !== p2) { showErr('دونوں پاس ورڈ ایک جیسے نہیں۔'); return; }
+  try { await call('POST', { action: 'changepass', password: p1 }); key = p1; store.set('driveKey', key); showErr(''); await ask('✓ پاس ورڈ بدل گیا', { ok: 'ٹھیک ہے' }); }
+  catch (e) { showErr(e.message === 'envpass' ? 'پاس ورڈ Vercel کی سیٹنگ (DRIVE_PASSWORD) سے آ رہا ہے، وہیں بدلیں۔' : errText(e)); }
+};
 
 // ---- listing ----
 async function load() {
@@ -265,6 +346,7 @@ async function load() {
   try { data = await call('GET', null, '?path=' + encodeURIComponent(path)); render(); }
   catch (e) {
     if (e.message === 'auth') { store.set('driveKey', ''); showLogin(ERR.auth); return; }
+    if (e.message === 'setup' || e.message === 'newpass') { route(e.message); return; }
     $('list').innerHTML = ''; showErr(errText(e));
   }
 }
@@ -362,12 +444,12 @@ function ask(title, opts) {
   return new Promise(done => {
     const d = $('dialog');
     d.innerHTML = '<form class="card"><b>' + esc(title) + '</b>' + (opts.text ? '<p class="lead">' + esc(opts.text) + '</p>' : '') +
-      (opts.input ? '<input class="field" id="dIn" required maxlength="100" autocomplete="off">' : '') +
-      '<div class="row"><button class="btn' + (opts.danger ? ' danger' : '') + '" type="submit">' + esc(opts.ok || 'ٹھیک ہے') + '</button><button class="btn ghost" type="button" id="dNo">منسوخ</button></div></form>';
+      (opts.input ? '<input class="field" id="dIn" required maxlength="100" autocomplete="off"' + (opts.password ? ' type="password"' : '') + '>' : '') +
+      '<div class="row"><button class="btn' + (opts.danger ? ' danger' : '') + '" type="submit">' + esc(opts.ok || 'ٹھیک ہے') + '</button>' + (opts.input || opts.danger ? '<button class="btn ghost" type="button" id="dNo">منسوخ</button>' : '') + '</div></form>';
     d.hidden = false;
     const close = v => { d.hidden = true; d.innerHTML = ''; done(v); };
     d.querySelector('form').onsubmit = e => { e.preventDefault(); close(opts.input ? $('dIn').value.trim() : true); };
-    $('dNo').onclick = () => close(null);
+    if ($('dNo')) $('dNo').onclick = () => close(null);
     if (opts.input) $('dIn').focus();
   });
 }
