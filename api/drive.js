@@ -1,4 +1,4 @@
-// "میرا ڈیٹا" — personal cloud storage backend for /mera-data/.
+// "میرا ڈیٹا" — personal cloud storage backend for this site (index.html).
 //
 // Files live in Vercel Blob storage (not on the phone). Everything is guarded by one
 // password, set in Vercel as the environment variable DRIVE_PASSWORD.

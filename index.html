@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>میرا ڈیٹا — آن لائن محفوظ</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="../icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#1F4E79">
 <meta name="referrer" content="no-referrer">
 <meta name="mobile-web-app-capable" content="yes">
@@ -103,7 +103,6 @@ input:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(-
 <div class="wrap">
   <div class="top">
     <h1>☁️ میرا ڈیٹا</h1>
-    <a class="home" href="../">← ہوم</a>
   </div>
   <p class="lead">ویڈیوز، تصویریں، PDF اور ہر قسم کی فائلیں انٹرنیٹ (کلاؤڈ) پر محفوظ کریں — موبائل کی میموری استعمال نہیں ہوتی۔ جتنے چاہیں فولڈر بنائیں، فولڈر کے اندر فولڈر بھی۔</p>
 
@@ -120,7 +119,7 @@ input:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(-
     <b>⚙️ پہلی بار سیٹ اپ (صرف ایک بار)</b>
     <p class="lead">فائلیں Vercel Blob کلاؤڈ اسٹوریج میں محفوظ ہوں گی۔ Vercel ڈیش بورڈ میں یہ کریں:</p>
     <ol>
-      <li><b>Storage</b> ← <b>Create</b> ← <b>Blob</b> منتخب کریں، اور اسے اس پراجیکٹ (ilme-jafar) سے جوڑ دیں۔ اس سے <code>BLOB_READ_WRITE_TOKEN</code> خود بن جائے گا۔</li>
+      <li><b>Storage</b> ← <b>Create</b> ← <b>Blob</b> منتخب کریں، اور اسے اس پراجیکٹ (mydata) سے جوڑ دیں۔ اس سے <code>BLOB_READ_WRITE_TOKEN</code> خود بن جائے گا۔</li>
       <li><b>Settings</b> ← <b>Environment Variables</b> میں نیا ویری ایبل <code>DRIVE_PASSWORD</code> بنائیں اور اپنا پاس ورڈ لکھیں۔</li>
       <li><b>Deployments</b> میں جا کر <b>Redeploy</b> کریں، پھر یہ صفحہ دوبارہ کھولیں۔</li>
     </ol>
@@ -167,12 +166,13 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&am
 const ROOT = 'mera-data/';
 const BLOB_CLIENT = './blob-client.js';   // @vercel/blob client, bundled locally (no CDN needed)
 
-// GitHub Pages can't run server code; there this page talks to the same API on Vercel.
-const VERCEL = ['https://ilme-jafar.vercel.app', 'https://ilme-jafar-ilme-jafar.vercel.app', 'https://ilme-jafar-git-main-ilme-jafar.vercel.app'];
-const onPages = /github\.io$/.test(location.hostname) || location.protocol === 'file:';
+// The API lives in this same Vercel project (api/drive.js). A copy opened from anywhere
+// else (a saved file, GitHub Pages) talks to the deployed site instead.
+const SITE = 'https://mydata-ochre.vercel.app';
+const sameSite = /\.vercel\.app$/.test(location.hostname) || location.hostname === 'localhost';
 const store = { get: k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } },
                 set: (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch (e) {} } };
-const BASES = [...new Set([store.get('driveBase'), ...(onPages ? [] : ['']), ...VERCEL, 'https://www.ilmejafar.com'])].filter(b => b || !onPages);
+const BASES = sameSite ? [''] : [SITE];
 let base = null;
 let key = store.get('driveKey');
 let path = decodeURIComponent((location.hash || '').replace(/^#\/?/, ''));
