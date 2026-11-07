@@ -85,7 +85,26 @@
   const add = (id, name, cat, o) => L.push(Object.assign({ id, name, cat }, o));
 
   // --- face ---
-  add('glasses', 'کالا چشمہ', 'face', { face: true, draw(x, W, H, t, face) {
+  // 3D effects (lib/fx3d.js, three.js): real-looking models that turn with the head.
+  // draw2d is only for the button picture, before the 3D engine has loaded.
+  const D3 = ids => function (x, W, H, t, face) { if (face && window.FX3D && face !== CARTOON) window.FX3D.draw(ids, x, W, H, t, face); };
+  add('aviator3d', 'سنہری چشمہ 3D', 'face', { face: true, three: true, draw: D3(['aviator']), draw2d: glasses2d('#d8b25a', 'rgba(150,170,190,.95)') });
+  add('dark3d', 'کالا چشمہ 3D', 'face', { face: true, three: true, draw: D3(['dark']), draw2d: glasses2d('#111', 'rgba(15,15,20,.95)') });
+  add('cap3d', 'کیپ 3D', 'face', { face: true, three: true, draw: D3(['cap']), draw2d: cap2d });
+  add('capshades3d', 'کیپ اور چشمہ 3D', 'face', { face: true, three: true, draw: D3(['cap', 'aviator']), draw2d(x, W, H, t, f) { cap2d(x, W, H, t, f); glasses2d('#d8b25a', 'rgba(150,170,190,.95)')(x, W, H, t, f); } });
+  function cap2d(x, W, H, t, face) {
+    const f = F(face, W, H), cw = f.w * 1.1;
+    x.save(); x.translate(f.top.x, f.top.y + f.w * .05); x.rotate(f.ang); x.fillStyle = '#18181b';
+    x.beginPath(); x.ellipse(0, 0, cw / 2, f.w * .5, 0, Math.PI, Math.PI * 2); x.fill();
+    x.beginPath(); x.ellipse(0, 0, cw * .62, f.w * .1, 0, 0, Math.PI); x.fill(); x.restore();
+  }
+  function glasses2d(frame, lens) { return function (x, W, H, t, face) {
+    const f = F(face, W, H), [e1, e2] = sortEyes(f), lw = f.w * .3, lh = f.w * .22;
+    for (const e of [e1, e2]) { x.save(); x.translate(e.x, e.y); x.rotate(f.ang); x.fillStyle = lens; x.strokeStyle = frame; x.lineWidth = f.w * .03;
+      x.beginPath(); x.ellipse(0, 0, lw / 2, lh / 2, 0, 0, TAU); x.fill(); x.stroke(); x.restore(); }
+    x.strokeStyle = frame; x.lineWidth = f.w * .03; x.beginPath(); x.moveTo(e1.x + lw / 2, e1.y); x.lineTo(e2.x - lw / 2, e2.y); x.stroke();
+  }; }
+  add('glasses', 'کالا چشمہ (سادہ)', 'face', { face: true, draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H), [e1, e2] = sortEyes(f), lw = f.w * .3, lh = f.w * .21;
     x.save(); x.lineCap = 'round';
     x.strokeStyle = '#1a1a1a'; x.lineWidth = f.w * .03;
