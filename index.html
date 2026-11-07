@@ -624,10 +624,41 @@ function viewCrop(sw, sh, dz) {
   w /= dz || 1; h /= dz || 1;
   return { x: (sw - w) / 2, y: (sh - h) / 2, w, h };
 }
+// Face tracking runs in a background worker (lib/face-worker.js) so the screen stays smooth;
+// if a phone can't run it there, it falls back to the page itself.
+let faceWorker = null, workerBusy = false, frameId = 0;
+const pending = new Map();
+function useLandmarks(lm, vw, vh, c, mir) {
+  if (!lm) { faceLm = null; return; }
+  const out = new Array(lm.length / 3);
+  for (let i = 0; i < out.length; i++) {
+    let px = (lm[i * 3] * vw - c.x) / c.w; if (mir) px = 1 - px;
+    out[i] = { x: px, y: (lm[i * 3 + 1] * vh - c.y) / c.h, z: lm[i * 3 + 2] * vw / c.w };
+  }
+  faceLm = out;
+}
+function startWorker() {
+  return new Promise((ok, no) => {
+    let w;
+    try { w = new Worker('lib/face-worker.js'); } catch (e) { no(e); return; }
+    const t = setTimeout(() => { w.terminate(); no(new Error('worker timeout')); }, 45000);
+    w.onmessage = e => {
+      const m = e.data;
+      if (m.type === 'ready') { clearTimeout(t); faceWorker = w; ok(); }
+      else if (m.type === 'error') { clearTimeout(t); w.terminate(); no(new Error(m.msg)); }
+      else if (m.type === 'lm') { workerBusy = false; const f = pending.get(m.id); pending.delete(m.id); if (f) useLandmarks(m.lm, f.vw, f.vh, f.c, f.mir); }
+    };
+    w.onerror = e => { clearTimeout(t); w.terminate(); no(e); };
+    w.postMessage({ type: 'init', wasm: new URL('lib/wasm', location.href).href, model: new URL('lib/face_landmarker.task', location.href).href });
+  });
+}
 function ensureFace() {
-  if (landmarker || faceLoad) return faceLoad;
+  if (landmarker || faceWorker || faceLoad) return faceLoad;
   faceState = 'loading';
   faceLoad = (async () => {
+    if (window.Worker && window.OffscreenCanvas && 'createImageBitmap' in window) {
+      try { await startWorker(); faceState = 'ready'; return; } catch (e) { console.warn('face worker', e); }
+    }
     try {
       const { FilesetResolver, FaceLandmarker } = await import('./lib/vision_bundle.mjs');
       const files = await FilesetResolver.forVisionTasks(new URL('lib/wasm', location.href).href);
@@ -654,6 +685,16 @@ function ensure3D() {
 }
 let lastDetect = 0;
 function detectFace(now) {
+  if (faceWorker) {
+    if (workerBusy || v.readyState < 2 || v.currentTime === lastVT || now - lastDetect < 33) return;
+    lastVT = v.currentTime; lastDetect = now; workerBusy = true;
+    const vw = v.videoWidth, vh = v.videoHeight, id = ++frameId;
+    pending.set(id, { vw, vh, c: viewCrop(vw, vh, digitalZoom), mir: facing === 'user' && mirrorSelfie });
+    createImageBitmap(v, { resizeWidth: 480, resizeHeight: Math.round(480 * vh / vw) })
+      .then(bm => faceWorker.postMessage({ type: 'frame', id, ts: now, bitmap: bm }, [bm]))
+      .catch(() => { workerBusy = false; pending.delete(id); });
+    return;
+  }
   if (!landmarker || v.readyState < 2 || v.currentTime === lastVT || now - lastDetect < 45) return;
   lastDetect = now;
   lastVT = v.currentTime;
