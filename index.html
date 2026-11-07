@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="لمحہ">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@700&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap">
 <style>
 /* Layout: full-screen camera; filter strip + shutter at the bottom, tools at the top.
    After a shot: full-screen editor (text, drawing, stickers, filters) with Save / Keep / Share. */
@@ -35,13 +35,32 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 #gridL{position:absolute;inset:0;pointer-events:none;background:
   linear-gradient(to right,transparent calc(33.33% - .5px),rgba(255,255,255,.35) calc(33.33% - .5px),rgba(255,255,255,.35) calc(33.33% + .5px),transparent calc(33.33% + .5px),transparent calc(66.66% - .5px),rgba(255,255,255,.35) calc(66.66% - .5px),rgba(255,255,255,.35) calc(66.66% + .5px),transparent calc(66.66% + .5px)),
   linear-gradient(to bottom,transparent calc(33.33% - .5px),rgba(255,255,255,.35) calc(33.33% - .5px),rgba(255,255,255,.35) calc(33.33% + .5px),transparent calc(33.33% + .5px),transparent calc(66.66% - .5px),rgba(255,255,255,.35) calc(66.66% - .5px),rgba(255,255,255,.35) calc(66.66% + .5px),transparent calc(66.66% + .5px))}
+#fxc{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#faceHint{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);background:rgba(0,0,0,.5);padding:8px 18px;border-radius:999px;font-weight:600;z-index:3;white-space:nowrap}
+.lens{display:flex;align-items:center;gap:8px;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:999px;padding:4px 6px 4px 4px;max-width:62vw}
+.lens canvas{width:40px;height:40px;border-radius:50%;flex:none;border:2px solid rgba(255,255,255,.7)}
+.lens .lt{display:flex;flex-direction:column;line-height:1.35;min-width:0}
+.lens .lt b{font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lens .lt small{font-size:.72rem;opacity:.8}
+.lens button{width:34px;height:34px;border-radius:50%;font-size:1.25rem;flex:none}
+.lens button.on{color:#ff4d8d}
+#musicPill{position:absolute;top:calc(64px + var(--safe-t));left:50%;transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:8px;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:999px;padding:6px 8px 6px 14px;max-width:70vw;font-size:.85rem;font-weight:600}
+#musicPill span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#musicPill button{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.2);font-size:.75rem;flex:none}
+.cats{display:flex;gap:6px;overflow-x:auto;padding:12px 12px 0;scrollbar-width:none;direction:rtl}
+.cats::-webkit-scrollbar{display:none}
+.cats button{flex:none;display:flex;flex-direction:column;align-items:center;gap:0;min-width:58px;padding:4px 6px;border-radius:12px;font-size:.74rem;opacity:.65}
+.cats button span{font-size:1.15rem;line-height:1.5}
+.cats button.on{opacity:1;background:rgba(255,255,255,.14);font-weight:700}
+.fchip.fav::after{content:"♥";position:absolute;top:2px;left:50%;transform:translateX(-50%);font-size:.7rem;color:#ff4d8d;text-shadow:0 0 3px #000}
+.fchip small{position:absolute;left:0;right:0;bottom:3px;font-size:.6rem;font-weight:700;text-align:center;text-shadow:0 1px 3px #000;pointer-events:none;line-height:1.2}
 #whiteFlash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .12s}
 #shotFlash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
 .ttop{position:absolute;top:calc(12px + var(--safe-t));left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;z-index:3}
 .tcol{display:flex;flex-direction:column;gap:12px}
 .brand{font-weight:700;font-size:1.05rem;letter-spacing:.5px;background:var(--glass);padding:6px 14px;border-radius:999px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .brand b{background:linear-gradient(90deg,#C4B5FD,#67E8F9);-webkit-background-clip:text;background-clip:text;color:transparent}
-#zoomLbl{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(190px + var(--safe-b));background:var(--glass);padding:2px 12px;border-radius:999px;font-size:.85rem;direction:ltr;z-index:3}
+#zoomLbl{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(250px + var(--safe-b));background:var(--glass);padding:2px 12px;border-radius:999px;font-size:.85rem;direction:ltr;z-index:3}
 .focus{position:absolute;width:74px;height:74px;margin:-37px 0 0 -37px;border:2px solid #FDE68A;border-radius:50%;pointer-events:none;animation:fr .7s ease forwards;z-index:3}
 @keyframes fr{0%{transform:scale(1.4);opacity:1}60%{transform:scale(1);opacity:1}100%{opacity:0}}
 #count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7rem;font-weight:700;text-shadow:0 4px 30px rgba(0,0,0,.5);pointer-events:none;z-index:4}
@@ -140,21 +159,32 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 <section class="screen" id="cam" hidden>
   <video id="v" playsinline muted autoplay></video>
   <div id="vig"></div>
+  <canvas id="fxc"></canvas>
   <div id="gridL" hidden></div>
   <div id="whiteFlash"></div>
   <div id="shotFlash"></div>
   <div id="count" hidden></div>
   <div id="recTime" hidden>0:00</div>
+  <div id="faceHint" hidden></div>
   <div class="ttop">
+    <div class="lens" id="lensPill">
+      <canvas id="lensThumb" width="96" height="96"></canvas>
+      <div class="lt"><b id="lensName">HD</b><small id="lensCat">رنگ</small></div>
+      <button id="favBtn" aria-label="پسندیدہ">♡</button>
+    </div>
     <div class="tcol">
       <button class="ibtn" id="flipBtn" title="کیمرہ بدلیں" aria-label="کیمرہ بدلیں"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3l-2-3H9L7 7H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z"/><path d="M9 13.5a3 3 0 0 1 5.2-2"/><path d="M15 12.5a3 3 0 0 1-5.2 2"/><path d="M14.5 9.5v2h-2"/><path d="M9.5 16.5v-2h2"/></svg></button>
       <button class="ibtn" id="flashBtn" title="فلیش" aria-label="فلیش">⚡<small id="flashLbl">بند</small></button>
-      <button class="ibtn" id="timerBtn" title="ٹائمر" aria-label="ٹائمر">⏱️<small id="timerLbl">بند</small></button>
-      <button class="ibtn" id="gridBtn" title="گرڈ" aria-label="گرڈ">#</button>
-      <button class="ibtn" id="mirrorBtn" title="سیلفی الٹی/سیدھی" aria-label="سیلفی الٹی یا سیدھی">⇋</button>
+      <button class="ibtn" id="musicBtn" title="ویڈیو میں گانا" aria-label="ویڈیو میں گانا">🎵</button>
+      <button class="ibtn" id="moreBtn" title="مزید" aria-label="مزید">⌄</button>
+      <div class="tcol" id="moreCol" hidden>
+        <button class="ibtn" id="timerBtn" title="ٹائمر" aria-label="ٹائمر">⏱️<small id="timerLbl">بند</small></button>
+        <button class="ibtn" id="gridBtn" title="گرڈ" aria-label="گرڈ">#</button>
+        <button class="ibtn" id="mirrorBtn" title="سیلفی الٹی/سیدھی" aria-label="سیلفی الٹی یا سیدھی">⇋</button>
+      </div>
     </div>
-    <div class="brand"><b>لمحہ</b></div>
   </div>
+  <div id="musicPill" hidden><span id="musicName"></span><button id="musicOff" aria-label="گانا ہٹائیں">✕</button></div>
   <div id="zoomLbl" hidden>1.0×</div>
   <div class="bottom">
     <div id="fname"></div>
@@ -164,7 +194,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
       <button class="shutter" id="shutter" aria-label="تصویر کھینچیں، دبا کر رکھیں تو ویڈیو"><span class="ring"></span><span class="core"></span></button>
       <button class="side" id="galBtn" title="فون سے تصویر" aria-label="فون سے تصویر">🖼️</button>
     </div>
-    <div class="hint">ٹیپ = تصویر · دبا کر رکھیں = ویڈیو · دو انگلیوں سے زوم</div>
+    <nav class="cats" id="cats" aria-label="اقسام"></nav>
   </div>
 </section>
 
@@ -226,9 +256,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 </section>
 
 <input type="file" id="pick" accept="image/*" hidden>
+<input type="file" id="pickAudio" accept="audio/*" hidden>
 <div id="busy" hidden><div class="spin"></div><div id="busyTxt">بن رہی ہے…</div></div>
 <div id="toast" hidden></div>
 
+<script src="fx.js"></script>
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
@@ -399,7 +431,7 @@ function applyPreview() {
   $('vig').style.opacity = f.vignette ? Math.min(1, f.vignette * 1.6) : 0;
   const mirror = facing === 'user' && mirrorSelfie;
   v.style.transform = (mirror ? 'scaleX(-1) ' : '') + (digitalZoom > 1 ? 'scale(' + digitalZoom + ')' : '');
-  $('fname').textContent = f.name;
+  $('fname').textContent = lens ? lens.name : f.name;
   $('mirrorBtn').hidden = facing !== 'user';
   $('mirrorBtn').classList.toggle('on', mirrorSelfie);
   const fl = { off: 'بند', on: 'آن', auto: 'آٹو' }[flashMode];
@@ -452,21 +484,201 @@ function paintStrip(el, base) {
     out.getContext('2d').drawImage(render(base, b.dataset.f, false, CHIP, CHIP), 0, 0);
   }
 }
-let chipT = 0;
-function liveChips() {                  // refresh the camera strip ~2× a second
-  clearInterval(chipT);
-  chipT = setInterval(() => {
-    if ($('cam').hidden || document.hidden || recording || !v.videoWidth) return;
-    paintStrip($('strip'), squareOf(v, facing === 'user' && mirrorSelfie, null));
-  }, 450);
-}
 function markStrip(el, id, scroll) {
   el.dataset.sel = id;
   for (const b of el.children) b.classList.toggle('sel', b.dataset.f === id);
   const b = el.querySelector('[data-f="' + id + '"]');
   if (b && scroll) el.scrollLeft = b.offsetLeft - el.clientWidth / 2 + b.offsetWidth / 2;
 }
-function pickFilter(id) { filterId = id; store.set('filter', id); markStrip($('strip'), id); applyPreview(); }
+
+// ============ lenses: colour filters + effects (decorations, frames, occasions, face) ============
+const CATNAME = Object.fromEntries(FX.CATS.map(c => [c[0], c[2]]));
+const ITEMS = [
+  ...FILTERS.map(f => ({ id: 'f:' + f.id, name: f.name, cat: 'color', filter: f.id, fx: null })),
+  ...FX.list.map(x => ({ id: 'x:' + x.id, name: x.name, cat: x.cat, filter: x.filter || 'hd', fx: x }))
+];
+const item = id => ITEMS.find(i => i.id === id);
+let lens = item(store.get('lens', 'f:' + filterId)) || ITEMS[0];
+let fxCur = lens.fx;
+filterId = lens.filter;
+let favs = store.get('favs', []), recents = store.get('recents', []);
+let cat = store.get('cat', 'all');
+let lastSquare = null, chipTime = 1.3;
+function itemsOf(c) {
+  if (c === 'all') return ITEMS;
+  if (c === 'fav') return favs.map(item).filter(Boolean);
+  if (c === 'recent') return recents.map(item).filter(Boolean);
+  return ITEMS.filter(i => i.cat === c);
+}
+function buildCats() {
+  $('cats').innerHTML = FX.CATS.map(([k, ic, n]) => '<button data-c="' + k + '"' + (k === cat ? ' class="on"' : '') + '><span>' + ic + '</span>' + n + '</button>').join('');
+}
+$('cats').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; cat = b.dataset.c; store.set('cat', cat); buildCats(); buildLensStrip(); };
+// A button shows the live camera through its look; face effects show a cartoon face.
+function paintChip(cv, it, base) {
+  if (!cv || !it) return;
+  const x = cv.getContext('2d');
+  if (it.fx && it.fx.face) {
+    if (cv.dataset.done) return;
+    FX.cartoonBase(x, CHIP, CHIP); it.fx.draw(x, CHIP, CHIP, 1.3, FX.cartoon); cv.dataset.done = 1; return;
+  }
+  if (base) x.drawImage(render(base, it.filter, false, CHIP, CHIP), 0, 0);
+  else if (it.fx) FX.decoBase(x, CHIP, CHIP);
+  else x.drawImage(render(sampleImage(), it.filter, false, CHIP, CHIP), 0, 0);
+  if (it.fx) { x.save(); it.fx.draw(x, CHIP, CHIP, chipTime, null); x.restore(); }
+}
+function buildLensStrip() {
+  const el = $('strip'), list = itemsOf(cat);
+  if (!list.length) {
+    el.innerHTML = '<div style="padding:18px 0;margin:0 auto;opacity:.8;font-size:.85rem;direction:rtl;white-space:nowrap">' +
+      (cat === 'fav' ? 'کسی بھی گول بٹن کو دبا کر رکھیں تو وہ یہاں آ جائے گا ♥' : 'ابھی یہاں کچھ نہیں') + '</div>';
+    return;
+  }
+  el.innerHTML = '';
+  for (const it of list) {
+    const b = document.createElement('button'); b.className = 'fchip' + (favs.includes(it.id) ? ' fav' : ''); b.dataset.f = it.id; b.title = it.name; b.setAttribute('aria-label', it.name);
+    const c = document.createElement('canvas'); c.width = c.height = CHIP; b.appendChild(c);
+    const n = document.createElement('small'); n.textContent = it.name; b.appendChild(n);
+    el.appendChild(b); paintChip(c, it, lastSquare);
+  }
+  markStrip(el, lens.id, true);
+}
+(function wireStrip() {
+  const el = $('strip'); let lp = null, longDone = false, st, p0 = null;
+  el.addEventListener('pointerdown', e => {
+    const b = e.target.closest('.fchip'); if (!b) return; longDone = false; p0 = { x: e.clientX, y: e.clientY };
+    lp = setTimeout(() => { longDone = true; toggleFav(b.dataset.f); if (navigator.vibrate) navigator.vibrate(30); }, 550);
+  });
+  const cancel = () => clearTimeout(lp);
+  // a long press is cancelled only when the finger really moves (i.e. it is a swipe)
+  el.addEventListener('pointermove', e => { if (p0 && Math.hypot(e.clientX - p0.x, e.clientY - p0.y) > 12) cancel(); });
+  el.addEventListener('pointerup', cancel); el.addEventListener('pointercancel', cancel);
+  el.addEventListener('scroll', () => { clearTimeout(st); st = setTimeout(() => {
+    const mid = el.getBoundingClientRect().left + el.clientWidth / 2; let best = null, bd = 1e9;
+    for (const b of el.querySelectorAll('.fchip')) { const r = b.getBoundingClientRect(), d = Math.abs(r.left + r.width / 2 - mid); if (d < bd) { bd = d; best = b; } }
+    if (best && best.dataset.f !== lens.id) selectLens(best.dataset.f, true);
+  }, 110); }, { passive: true });
+  el.addEventListener('click', e => {
+    const b = e.target.closest('.fchip'); if (!b) return;
+    if (longDone) { longDone = false; return; }
+    selectLens(b.dataset.f); b.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+  });
+})();
+function selectLens(id, fromScroll) {
+  const it = item(id); if (!it) return;
+  lens = it; fxCur = it.fx; filterId = it.filter;
+  store.set('lens', id); store.set('filter', filterId);
+  recents = [id, ...recents.filter(r => r !== id)].slice(0, 12); store.set('recents', recents);
+  markStrip($('strip'), id, false);
+  applyPreview(); updateLensPill();
+  if (fxCur && fxCur.face) ensureFace();
+  if (fxCur && fxCur.fontNeeded && document.fonts) document.fonts.load('700 40px "Noto Nastaliq Urdu"').catch(() => {});
+  hintText = null;
+}
+function updateLensPill() {
+  $('lensName').textContent = lens.name; $('lensCat').textContent = CATNAME[lens.cat] || '';
+  $('favBtn').classList.toggle('on', favs.includes(lens.id)); $('favBtn').textContent = favs.includes(lens.id) ? '♥' : '♡';
+  const cv = $('lensThumb'); delete cv.dataset.done; paintChip(cv, lens, lastSquare);
+}
+function toggleFav(id) {
+  const on = !favs.includes(id);
+  favs = on ? [id, ...favs] : favs.filter(f => f !== id); store.set('favs', favs);
+  toast(on ? '♥ پسندیدہ میں شامل' : 'پسندیدہ سے ہٹا دیا');
+  for (const b of $('strip').querySelectorAll('.fchip')) b.classList.toggle('fav', favs.includes(b.dataset.f));
+  updateLensPill();
+  if (cat === 'fav') buildLensStrip();
+}
+$('favBtn').onclick = () => toggleFav(lens.id);
+let chipT = 0;
+function liveChips() {                  // refresh the buttons with the live camera ~2× a second
+  clearInterval(chipT);
+  chipT = setInterval(() => {
+    if ($('cam').hidden || document.hidden || recording || !v.videoWidth) return;
+    lastSquare = squareOf(v, facing === 'user' && mirrorSelfie, null); chipTime = performance.now() / 1000;
+    for (const b of $('strip').querySelectorAll('.fchip')) paintChip(b.firstChild, item(b.dataset.f), lastSquare);
+    paintChip($('lensThumb'), lens, lastSquare);
+  }, 550);
+}
+
+// ---- effect layer over the camera, and face tracking ----
+const fxc = $('fxc');
+let fxT = 0, faceLm = null, faceState = 'off', landmarker = null, faceLoad = null, lastVT = -1, fxCleared = true, hintText = null;
+function sizeFx() { const d = Math.min(1.5, devicePixelRatio || 1); fxc.width = Math.round(innerWidth * d); fxc.height = Math.round(innerHeight * d); }
+sizeFx(); addEventListener('resize', sizeFx);
+// The part of a frame that fills the screen (the preview uses object-fit: cover).
+function viewCrop(sw, sh, dz) {
+  const A = innerWidth / innerHeight; let w = sw, h = sw / A;
+  if (h > sh) { h = sh; w = sh * A; }
+  w /= dz || 1; h /= dz || 1;
+  return { x: (sw - w) / 2, y: (sh - h) / 2, w, h };
+}
+function ensureFace() {
+  if (landmarker || faceLoad) return faceLoad;
+  faceState = 'loading';
+  faceLoad = (async () => {
+    try {
+      const { FilesetResolver, FaceLandmarker } = await import('./lib/vision_bundle.mjs');
+      const files = await FilesetResolver.forVisionTasks(new URL('lib/wasm', location.href).href);
+      let err = null;
+      for (const delegate of ['GPU', 'CPU']) {
+        try {
+          landmarker = await FaceLandmarker.createFromOptions(files, {
+            baseOptions: { modelAssetPath: new URL('lib/face_landmarker.task', location.href).href, delegate },
+            runningMode: 'VIDEO', numFaces: 1
+          });
+          break;
+        } catch (e) { err = e; }
+      }
+      if (!landmarker) throw err || new Error('face');
+      faceState = 'ready';
+    } catch (e) { console.warn('face tracking', e); faceState = 'error'; faceLoad = null; }
+  })();
+  return faceLoad;
+}
+function detectFace(now) {
+  if (!landmarker || v.readyState < 2 || v.currentTime === lastVT) return;
+  lastVT = v.currentTime;
+  let r; try { r = landmarker.detectForVideo(v, now); } catch (e) { return; }
+  const lm = r && r.faceLandmarks && r.faceLandmarks[0];
+  if (!lm) { faceLm = null; return; }
+  const vw = v.videoWidth, vh = v.videoHeight, c = viewCrop(vw, vh, digitalZoom), mir = facing === 'user' && mirrorSelfie;
+  faceLm = lm.map(p => { let px = (p.x * vw - c.x) / c.w; if (mir) px = 1 - px; return { x: px, y: (p.y * vh - c.y) / c.h }; });
+}
+function faceHint() {
+  let t = '';
+  if (fxCur && fxCur.face && !$('cam').hidden) t = faceState === 'loading' ? '⏳ چہرہ پہچاننے والا ٹول لوڈ ہو رہا ہے…' : faceState === 'error' ? 'یہ اثر اس فون پر نہیں چل سکا' : !faceLm ? '🙂 چہرہ کیمرے کے سامنے لائیں' : '';
+  if (t !== hintText) { hintText = t; $('faceHint').textContent = t; $('faceHint').hidden = !t; }
+}
+function fxLoop(now) {
+  requestAnimationFrame(fxLoop);
+  fxT = now / 1000;
+  if ($('cam').hidden || !fxCur) {
+    if (!fxCleared) { fxc.getContext('2d').clearRect(0, 0, fxc.width, fxc.height); fxCleared = true; }
+    faceHint(); return;
+  }
+  if (fxCur.face) detectFace(now);
+  faceHint();
+  const x = fxc.getContext('2d'); x.clearRect(0, 0, fxc.width, fxc.height);
+  x.save(); fxCur.draw(x, fxc.width, fxc.height, fxT, fxCur.face ? faceLm : null); x.restore();
+  fxCleared = false;
+}
+requestAnimationFrame(fxLoop);
+const fxSnapshot = () => fxCur ? { fx: fxCur, t: fxT, face: fxCur.face && faceLm ? faceLm.slice() : null } : null;
+function drawSnap(c, snap) { if (!snap) return; const x = c.getContext('2d'); x.save(); snap.fx.draw(x, c.width, c.height, snap.t, snap.face); x.restore(); }
+
+// ---- music for videos (a song from the phone is mixed into the recording) ----
+let musicEl = null, musicNode = null, audioCtx = null;
+$('musicBtn').onclick = () => $('pickAudio').click();
+$('pickAudio').onchange = e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  if (musicEl) { musicEl.pause(); URL.revokeObjectURL(musicEl.src); }
+  musicEl = new Audio(URL.createObjectURL(f)); musicEl.loop = true; musicNode = null;
+  $('musicName').textContent = '🎵 ' + f.name.replace(/\.[^.]+$/, ''); $('musicPill').hidden = false; $('musicBtn').classList.add('on');
+  toast('ویڈیو بناتے وقت یہ گانا ساتھ لگ جائے گا');
+};
+$('musicName').onclick = () => { if (!musicEl || recording) return; musicEl.paused ? musicEl.play().catch(() => {}) : musicEl.pause(); };
+$('musicOff').onclick = () => { if (musicEl) musicEl.pause(); musicEl = null; musicNode = null; $('musicPill').hidden = true; $('musicBtn').classList.remove('on'); };
+$('moreBtn').onclick = () => { const m = $('moreCol'); m.hidden = !m.hidden; $('moreBtn').textContent = m.hidden ? '⌄' : '⌃'; };
 
 // ---- buttons ----
 $('flipBtn').onclick = flip;
@@ -562,12 +774,13 @@ async function takePhoto() {
   if (shooting || !track) return; shooting = true;
   try {
     await countdown();
+    const snap = fxSnapshot();
     const useFlash = flashMode === 'on' || (flashMode === 'auto' && isDark());
     const front = facing === 'user';
     if (useFlash && front) { $('whiteFlash').style.opacity = 1; await sleep(380); }   // screen as a soft front light
     let src = null;
     // Full sensor resolution where the browser allows it (Android Chrome).
-    if (imageCapture && imageCapture.takePhoto) {
+    if (imageCapture && imageCapture.takePhoto && !(fxCur && fxCur.face)) {   // face effects use the video frame, where the face was found
       try {
         const opts = {};
         const pc = await withTimeout(imageCapture.getPhotoCapabilities(), 1500).catch(() => null);
@@ -587,8 +800,10 @@ async function takePhoto() {
     $('whiteFlash').style.opacity = 0;
     const sf = $('shotFlash'); sf.style.transition = 'none'; sf.style.opacity = .85; requestAnimationFrame(() => { sf.style.transition = 'opacity .35s'; sf.style.opacity = 0; });
     let crop = null;
-    if (digitalZoom > 1) { const w = src.width / digitalZoom, h = src.height / digitalZoom; crop = { x: (src.width - w) / 2, y: (src.height - h) / 2, w, h }; }
-    openEditor(src, front && mirrorSelfie, crop);
+    // With an effect the photo is cut to what the screen showed, so frames and stickers line up.
+    if (snap) crop = viewCrop(src.width, src.height, digitalZoom);
+    else if (digitalZoom > 1) { const w = src.width / digitalZoom, h = src.height / digitalZoom; crop = { x: (src.width - w) / 2, y: (src.height - h) / 2, w, h }; }
+    openEditor(src, front && mirrorSelfie, crop, snap);
   } catch (e) { toast('تصویر نہیں بن سکی، دوبارہ کوشش کریں'); }
   finally { shooting = false; $('whiteFlash').style.opacity = 0; }
 }
@@ -608,23 +823,35 @@ function pickMime() {
 async function startRec() {
   if (recording || !track || !window.MediaRecorder) { if (!window.MediaRecorder) toast('اس براؤزر میں ویڈیو ریکارڈنگ نہیں ہو سکتی'); return; }
   if (!audioTrack) { try { audioTrack = (await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })).getAudioTracks()[0]; } catch (e) { audioTrack = null; } }
-  const vw = v.videoWidth, vh = v.videoHeight, k = Math.min(1, 1920 / Math.max(vw, vh));
-  const c = mk(vw * k, vh * k), x = c.getContext('2d');
+  const vw = v.videoWidth, vh = v.videoHeight, cr = viewCrop(vw, vh, digitalZoom), k = Math.min(1, 1920 / Math.max(cr.w, cr.h));
+  const c = mk(cr.w * k, cr.h * k), x = c.getContext('2d');
   const f = F(filterId), front = facing === 'user', mirror = front && mirrorSelfie;
   if (flashMode === 'on' && !front) torch(true);
   const draw = () => {
     x.save();
     if (ctxFilterOK) x.filter = f.css === 'none' ? 'none' : f.css;
     if (mirror) { x.translate(c.width, 0); x.scale(-1, 1); }
-    if (digitalZoom > 1) { const w = vw / digitalZoom, h = vh / digitalZoom; x.drawImage(v, (vw - w) / 2, (vh - h) / 2, w, h, 0, 0, c.width, c.height); }
-    else x.drawImage(v, 0, 0, c.width, c.height);
+    x.drawImage(v, cr.x, cr.y, cr.w, cr.h, 0, 0, c.width, c.height);
     x.restore();
     if (f.vignette) vignette(c, f.vignette);
+    if (fxCur) { x.save(); fxCur.draw(x, c.width, c.height, fxT, fxCur.face ? faceLm : null); x.restore(); }
     recRaf = requestAnimationFrame(draw);
   };
   draw();
   const out = c.captureStream(30);
-  if (audioTrack) out.addTrack(audioTrack);
+  let audioOut = audioTrack;
+  if (musicEl) {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); await audioCtx.resume();
+      const dest = audioCtx.createMediaStreamDestination();
+      if (!musicNode) musicNode = audioCtx.createMediaElementSource(musicEl);
+      musicNode.disconnect(); musicNode.connect(dest);
+      if (audioTrack) { const g = audioCtx.createGain(); g.gain.value = .9; audioCtx.createMediaStreamSource(new MediaStream([audioTrack])).connect(g).connect(dest); }
+      musicEl.currentTime = 0; musicEl.play().catch(() => {});
+      audioOut = dest.stream.getAudioTracks()[0];
+    } catch (e) { audioOut = audioTrack; }
+  }
+  if (audioOut) out.addTrack(audioOut);
   const mime = pickMime();
   rec = new MediaRecorder(out, { mimeType: mime || undefined, videoBitsPerSecond: 10e6, audioBitsPerSecond: 128e3 });
   recChunks = [];
@@ -645,12 +872,13 @@ async function startRec() {
 }
 function stopRec() {
   if (!recording) return; recording = false;
-  clearInterval(recTick); shutter.classList.remove('rec'); shutter.style.setProperty('--p', '0%'); $('recTime').hidden = true;
+  clearInterval(recTick); shutter.classList.remove('rec');
+  if (musicEl) { musicEl.pause(); if (musicNode && audioCtx) { musicNode.disconnect(); musicNode.connect(audioCtx.destination); } } shutter.style.setProperty('--p', '0%'); $('recTime').hidden = true;
   try { rec.stop(); } catch (e) {}
 }
 
 // ============ editor ============
-let raw = null, rawMirror = false, rawCrop = null, efilter = 'hd';
+let raw = null, rawMirror = false, rawCrop = null, efilter = 'hd', efx = null;
 let items = [], strokes = [], drawColor = '#ffffff', drawing = false;
 const box = $('box'), ec = $('ec'), dc = $('dc'), ov = $('ov');
 let dispW = 0, dispH = 0;
@@ -666,11 +894,12 @@ function layoutBox() {
 }
 function drawPreview() {
   const c = render(raw, efilter, rawMirror, ec.width, ec.height, rawCrop);
+  drawSnap(c, efx);
   ec.getContext('2d').drawImage(c, 0, 0);
   $('efname').textContent = F(efilter).name;
 }
-function openEditor(src, mirror, crop) {
-  raw = src; rawMirror = !!mirror; rawCrop = crop || null; efilter = filterId;
+function openEditor(src, mirror, crop, snap) {
+  raw = src; rawMirror = !!mirror; rawCrop = crop || null; efilter = filterId; efx = snap || null;
   items = []; strokes = []; ov.innerHTML = ''; setDraw(false);
   show('edit'); layoutBox(); drawPreview(); redrawStrokes();
   paintStrip($('strip2'), squareOf(raw, rawMirror, rawCrop));
@@ -847,6 +1076,7 @@ async function compose() {
     const MAXPX = 16e6;                       // keep within phone canvas limits
     if (w * h > MAXPX) { const k = Math.sqrt(MAXPX / (w * h)); w *= k; h *= k; }
     const c = render(raw, efilter, rawMirror, w, h, rawCrop), x = c.getContext('2d');
+    drawSnap(c, efx);
     paintStrokes(x, c.width, c.height);
     const k = c.width / dispW;
     for (const it of items) {
@@ -900,7 +1130,7 @@ $('galBtn').onclick = $('permGallery').onclick = () => $('pick').click();
 $('pick').onchange = async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
   busy(true, 'کھل رہی ہے…');
-  try { const bmp = await createImageBitmap(f); busy(false); openEditor(bmp, false, null); }
+  try { const bmp = await createImageBitmap(f); busy(false); openEditor(bmp, false, null, null); }
   catch (err) { busy(false); toast('یہ تصویر نہیں کھل سکی'); }
 };
 
@@ -975,12 +1205,12 @@ $('vwShare').onclick = () => shareBlob(vwItem.blob, 'lamha-' + stamp() + '.' + e
 $('vwDel').onclick = async () => { if (!confirm('یہ لمحہ حذف کر دیں؟')) return; await tx('readwrite', s => s.delete(vwItem.id)); refreshMemBtn(); history.back(); };
 
 // ============ start ============
-buildStrip($('strip'), (id, fromScroll) => pickFilter(id));
+buildCats(); buildLensStrip(); updateLensPill();
 buildStrip($('strip2'), (id, fromScroll) => setEFilter(id, !fromScroll));
 async function boot() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { permissionHelp(null); return; }
   show('cam');
-  if (await startCam()) { markStrip($('strip'), filterId, true); refreshMemBtn(); liveChips(); }
+  if (await startCam()) { markStrip($('strip'), lens.id, true); refreshMemBtn(); liveChips(); if (fxCur && fxCur.face) ensureFace(); }
 }
 $('startBtn').onclick = boot;
 // If the camera was allowed before, open it straight away.
