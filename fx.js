@@ -100,7 +100,7 @@
   // 3D effects (lib/fx3d.js, three.js): real-looking models that turn with the head.
   // draw2d is only for the button picture, before the 3D engine has loaded.
   const D3 = ids => function (x, W, H, t, face) { if (face && window.FX3D && face !== CARTOON) window.FX3D.draw(ids, x, W, H, t, face); };
-  add('aviator3d', 'سنہری چشمہ 3D', 'face', { face: true, three: true, draw: D3(['aviator']), draw2d: glasses2d('#d8b25a', 'rgba(150,170,190,.95)') });
+  add('aviator3d', 'سنہری چشمہ 3D', 'face', { face: true, three: true, thumb: 'assets/lens/aviator.jpg', draw: D3(['aviator']), draw2d: glasses2d('#d8b25a', 'rgba(150,170,190,.95)') });
   add('dark3d', 'کالا چشمہ 3D', 'face', { face: true, three: true, draw: D3(['dark']), draw2d: glasses2d('#111', 'rgba(15,15,20,.95)') });
   add('cap3d', 'کیپ 3D', 'face', { face: true, three: true, draw: D3(['cap']), draw2d: cap2d });
   add('capshades3d', 'کیپ اور چشمہ 3D', 'face', { face: true, three: true, draw: D3(['cap', 'aviator']), draw2d(x, W, H, t, f) { cap2d(x, W, H, t, f); glasses2d('#d8b25a', 'rgba(150,170,190,.95)')(x, W, H, t, f); } });
@@ -192,7 +192,7 @@
     }
     x.restore();
   } });
-  add('blush', 'گلابی نکھار', 'face', { face: true, filter: 'glow', draw(x, W, H, t, face) {
+  add('blush', 'گلابی نکھار', 'face', { face: true, thumb: 'assets/lens/glow.jpg', filter: 'glow', draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H);
     for (const i of [50, 280]) {
       const c = { x: face[i].x * W, y: face[i].y * H }, r = f.w * .14, g = x.createRadialGradient(c.x, c.y, 0, c.x, c.y, r);
