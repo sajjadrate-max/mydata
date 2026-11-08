@@ -556,9 +556,23 @@ function renderLite(src, fid) {
   if (f.vignette) vignette(c, f.vignette);
   return c;
 }
+// Buttons can show a picture (assets/lens/*.jpg) instead of a drawn preview.
+const thumbs = {};
+function thumbImg(src, onload) {
+  let t = thumbs[src];
+  if (!t) { t = thumbs[src] = new Image(); t.src = src; t.waiting = []; t.onload = () => t.waiting.splice(0).forEach(f => f()); }
+  if (!t.complete && onload) t.waiting.push(onload);
+  return t.complete && t.naturalWidth ? t : null;
+}
 function paintChip(cv, it, base) {
   if (!cv || !it) return;
   const x = cv.getContext('2d');
+  if (it.fx && it.fx.thumb) {
+    if (cv.dataset.done) return;
+    const im = thumbImg(it.fx.thumb, () => paintChip(cv, it, base));
+    if (im) { x.drawImage(im, 0, 0, CHIP, CHIP); cv.dataset.done = 1; } else FX.decoBase(x, CHIP, CHIP);
+    return;
+  }
   if (it.fx && it.fx.face) {
     if (cv.dataset.done) return;
     FX.cartoonBase(x, CHIP, CHIP); (it.fx.draw2d || it.fx.draw)(x, CHIP, CHIP, 1.3, FX.cartoon); cv.dataset.done = 1; return;

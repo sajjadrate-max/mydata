@@ -17,6 +17,7 @@ const cfg = EMU ? { apiKey: 'demo-key', authDomain: 'localhost', projectId: 'dem
 const configured = !!cfg.apiKey;
 const pairId = (a, b) => a < b ? a + '_' + b : b + '_' + a;
 const DAY = 24 * 3600 * 1000;
+const AVATARS = ['assets/avatars/a1.jpg', 'assets/avatars/a2.jpg'];   // cartoon avatars to choose from
 
 let app, auth, db, me = null, prof = null;
 let friendships = new Map();   // otherUid -> friendship doc
@@ -45,7 +46,7 @@ const css = `
 .av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#06B6D4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;overflow:hidden;flex:none;position:relative}
 .av img{width:100%;height:100%;object-fit:cover}
 .av.ring{box-shadow:0 0 0 2px #0d0d12,0 0 0 4px #A78BFA}
-.av.big{width:96px;height:96px;font-size:2.4rem}
+.av.avbig{width:96px;height:96px;font-size:2.4rem}
 .li{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid #1b1b24;min-width:0}
 .li .tx{flex:1;display:flex;flex-direction:column;min-width:0;text-align:right}
 .li .tx b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -291,12 +292,12 @@ function render() {
 function suggestUser() { const b = ((me && (me.email || '').split('@')[0]) || 'user').toLowerCase().replace(/[^a-z0-9_.]/g, '').slice(0, 16); return b.length >= 3 ? b : b + '123'; }
 function renderProfile() {
   const n = friendIds().length, mine = stories.get(me.uid) || [];
-  return header('پروفائل') + '<div class="sb" style="text-align:center"><div style="display:flex;justify-content:center;margin:10px 0">' + avatar(prof, 'big' + (mine.length ? ' ring' : '')) + '</div>' +
+  return header('پروفائل') + '<div class="sb" style="text-align:center"><div style="display:flex;justify-content:center;margin:10px 0">' + avatar(prof, 'avbig' + (mine.length ? ' ring' : '')) + '</div>' +
     '<h2 style="margin:4px 0">' + esc(prof.name) + '</h2><div style="color:#9aa0b4" dir="ltr">@' + esc(prof.username) + '</div>' +
     '<div style="margin:16px 0;display:flex;gap:8px;justify-content:center"><button class="pb" data-go="friends">👥 ' + n + ' دوست</button><button class="pb" data-share-me>🔗 اپنا لنک بھیجیں</button></div>' +
     (mine.length ? '<button class="pb go" data-story="' + esc(me.uid) + '">⭕ میری اسٹوری دیکھیں (' + mine.length + ')</button>' : '<div style="color:#9aa0b4;font-size:.85rem">کیمرے سے تصویر بنا کر «بھیجیں» میں «میری اسٹوری» چنیں</div>') +
     '<div class="sec2" style="text-align:right">اکاؤنٹ</div><div style="display:flex;flex-direction:column;gap:8px">' +
-    '<button class="pb" data-act="rename">✏️ نام بدلیں</button><a class="pb" href="privacy.html" style="display:flex;align-items:center;justify-content:center;color:#fff;text-decoration:none">🔒 پرائیویسی پالیسی</a>' +
+    '<button class="pb" data-act="avatar">🖼️ اوتار بدلیں</button><button class="pb" data-act="rename">✏️ نام بدلیں</button><a class="pb" href="privacy.html" style="display:flex;align-items:center;justify-content:center;color:#fff;text-decoration:none">🔒 پرائیویسی پالیسی</a>' +
     '<button class="pb" data-act="logout">🚪 لاگ آؤٹ</button><button class="pb red" data-act="delete">🗑️ اکاؤنٹ ختم کریں</button></div></div>';
 }
 let lastQ = '', searchT = 0;
@@ -314,7 +315,7 @@ function doSearch(q) {
 }
 function renderPerson() {
   const p = people.get(screenArg) || { uid: screenArg, name: '…' }, f = friendships.get(p.uid);
-  return header('') + '<div class="sb" style="text-align:center"><div style="display:flex;justify-content:center;margin:10px 0">' + avatar(p, 'big') + '</div><h2 style="margin:4px 0">' + esc(p.name) + '</h2><div style="color:#9aa0b4" dir="ltr">@' + esc(p.username) + '</div><div style="margin:18px 0">' + friendButton(p.uid) + '</div>' +
+  return header('') + '<div class="sb" style="text-align:center"><div style="display:flex;justify-content:center;margin:10px 0">' + avatar(p, 'avbig') + '</div><h2 style="margin:4px 0">' + esc(p.name) + '</h2><div style="color:#9aa0b4" dir="ltr">@' + esc(p.username) + '</div><div style="margin:18px 0">' + friendButton(p.uid) + '</div>' +
     (p.uid !== me.uid ? '<div style="display:flex;flex-direction:column;gap:8px;margin-top:30px">' + (f && f.status === 'accepted' ? '<button class="pb" data-unfriend="' + esc(p.uid) + '">دوستی ختم کریں</button>' : '') + '<button class="pb" data-block="' + esc(p.uid) + '">🚫 بلاک کریں</button><button class="pb red" data-report="' + esc(p.uid) + '">⚠️ رپورٹ کریں</button></div>' : '') + '</div>';
 }
 function renderFriends() {
@@ -452,6 +453,21 @@ root.addEventListener('click', async e => {
     if (d.act === 'claim') {
       try { t.disabled = true; await claimUsername($('uUser').value, $('uName').value); open(pendingScreen || 'chats', null, true); pendingScreen = null; }
       catch (x) { $('uErr').textContent = x.message && !x.code ? x.message : errMsg(x); t.disabled = false; }
+      return;
+    }
+    if (d.act === 'avatar') {   // choose a cartoon avatar or the Gmail photo
+      const opts = [...AVATARS, me.photoURL].filter(Boolean);
+      const v = document.createElement('div'); v.className = 'sv'; v.id = 'sview'; v.style.flexDirection = 'column'; v.style.gap = '14px';
+      v.innerHTML = '<b>اوتار چنیں</b><div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;padding:0 20px">' +
+        opts.map(o => '<button data-pickav="' + esc(o) + '" class="av avbig' + (prof.photo === o ? ' ring' : '') + '"><img src="' + esc(o) + '" alt="" referrerpolicy="no-referrer"></button>').join('') +
+        '</div><button class="pb" data-pickav="">کوئی تصویر نہیں</button>';
+      document.body.appendChild(v); history.pushState({ soc: 'avatar' }, '');
+      v.onclick = async ev => {
+        const b = ev.target.closest('[data-pickav]'); if (!b) return;
+        const photo = b.dataset.pickav;
+        await setDoc(doc(db, 'users', me.uid), { ...stripUid(prof), photo }).catch(x => H.toast(errMsg(x)));
+        prof.photo = photo; people.set(me.uid, prof); updateBadges(); history.back(); render();
+      };
       return;
     }
     if (d.act === 'logout') { await signOut(auth); leave(); H.toast('لاگ آؤٹ ہو گئے'); return; }
