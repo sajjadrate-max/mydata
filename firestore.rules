@@ -1,0 +1,79 @@
+rules_version = '2';
+// Lamha security rules. Paste into Firebase console -> Firestore Database -> Rules -> Publish.
+// - Profiles and usernames: visible to signed-in users (for search); only the owner can change theirs.
+// - Friendships: only the two people involved. A request can only be accepted by the person it was sent to.
+// - Chats and messages: only the two friends in the chat. A picture ("snap") can be opened once by the receiver.
+// - Stories: only the owner and their accepted friends.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function pairId(a, b) { return a < b ? a + '_' + b : b + '_' + a; }
+    function fpath(a, b) { return /databases/$(database)/documents/friendships/$(pairId(a, b)); }
+    function friends(a, b) { return exists(fpath(a, b)) && get(fpath(a, b)).data.status == 'accepted'; }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && me() == uid
+        && request.resource.data.username is string && request.resource.data.name is string
+        && request.resource.data.name.size() <= 40;
+      allow delete: if signedIn() && me() == uid;
+    }
+
+    match /usernames/{name} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.uid == me() && name.matches('^[a-z0-9_.]{3,20}$');
+      allow delete: if signedIn() && resource.data.uid == me();
+    }
+
+    match /friendships/{id} {
+      allow read: if signedIn() && me() in resource.data.members;
+      allow create: if signedIn()
+        && request.resource.data.from == me() && request.resource.data.to != me()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.members.size() == 2
+        && request.resource.data.members.hasAll([me(), request.resource.data.to])
+        && id == pairId(me(), request.resource.data.to);
+      allow update: if signedIn() && me() in resource.data.members
+        && request.resource.data.members == resource.data.members
+        && ((resource.data.to == me() && resource.data.status == 'pending' && request.resource.data.status == 'accepted')
+            || (request.resource.data.status == 'blocked' && request.resource.data.blockedBy == me()));
+      allow delete: if signedIn() && me() in resource.data.members
+        && !(resource.data.status == 'blocked' && resource.data.blockedBy != me());
+    }
+
+    match /chats/{id} {
+      allow read: if signedIn() && me() in resource.data.members;
+      allow create, update: if signedIn() && me() in request.resource.data.members
+        && request.resource.data.members.size() == 2
+        && id == request.resource.data.members[0] + '_' + request.resource.data.members[1]
+        && friends(request.resource.data.members[0], request.resource.data.members[1]);
+
+      match /messages/{mid} {
+        function chat() { return get(/databases/$(database)/documents/chats/$(id)).data; }
+        allow read: if signedIn() && me() in chat().members;
+        allow create: if signedIn() && request.resource.data.from == me() && me() in chat().members
+          && friends(chat().members[0], chat().members[1])
+          && request.resource.data.keys().hasOnly(['from', 'type', 'text', 'img', 'createdAt', 'opened'])
+          && request.resource.data.type in ['text', 'snap']
+          && (!('text' in request.resource.data) || request.resource.data.text.size() <= 2000)
+          && (!('img' in request.resource.data) || request.resource.data.img.size() < 1000000);
+        // the receiver opens a snap once: it is marked opened and the picture is removed
+        allow update: if signedIn() && me() in chat().members && resource.data.from != me()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['opened', 'img'])
+          && request.resource.data.opened == true && request.resource.data.img == '';
+        allow delete: if signedIn() && resource.data.from == me();
+      }
+    }
+
+    match /stories/{sid} {
+      allow read: if signedIn() && (resource.data.uid == me() || friends(resource.data.uid, me()));
+      allow create: if signedIn() && request.resource.data.uid == me() && request.resource.data.img.size() < 1000000;
+      allow delete: if signedIn() && resource.data.uid == me();
+    }
+
+    match /reports/{rid} {
+      allow create: if signedIn() && request.resource.data.by == me();
+    }
+  }
+}

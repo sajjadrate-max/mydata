@@ -44,7 +44,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 .lens .lt small{font-size:.72rem;opacity:.8}
 .lens button{width:34px;height:34px;border-radius:50%;font-size:1.25rem;flex:none}
 .lens button.on{color:#ff4d8d}
-#musicPill{position:absolute;top:calc(64px + var(--safe-t));left:50%;transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:8px;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:999px;padding:6px 8px 6px 14px;max-width:70vw;font-size:.85rem;font-weight:600}
+#musicPill{position:absolute;top:calc(118px + var(--safe-t));left:50%;transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:8px;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:999px;padding:6px 8px 6px 14px;max-width:70vw;font-size:.85rem;font-weight:600}
 #musicPill span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #musicPill button{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.2);font-size:.75rem;flex:none}
 .cats{display:flex;gap:6px;overflow-x:auto;padding:12px 12px 0;scrollbar-width:none;direction:rtl}
@@ -56,7 +56,20 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 .fchip small{position:absolute;left:0;right:0;bottom:3px;font-size:.6rem;font-weight:700;text-align:center;text-shadow:0 1px 3px #000;pointer-events:none;line-height:1.2}
 #whiteFlash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .12s}
 #shotFlash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
-.ttop{position:absolute;top:calc(12px + var(--safe-t));left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;z-index:3}
+.trow0{position:absolute;top:calc(10px + var(--safe-t));left:12px;right:12px;display:flex;justify-content:space-between;z-index:4;direction:ltr}
+.tgrp{display:flex;gap:10px}
+.sbadge{position:relative}
+#meAvatar{width:100%;height:100%;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700}
+#meAvatar img{width:100%;height:100%;object-fit:cover}
+.nb{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:#EF4444;color:#fff;font-size:.66rem;font-style:normal;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;line-height:1}
+#targetBar{position:absolute;top:calc(62px + var(--safe-t));left:50%;transform:translateX(-50%);z-index:4;background:linear-gradient(90deg,#7C3AED,#06B6D4);padding:6px 10px 6px 16px;border-radius:999px;font-weight:700;font-size:.88rem;display:flex;gap:8px;align-items:center;white-space:nowrap}
+#targetBar button{width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.25);font-size:.7rem}
+.bnav2{display:flex;justify-content:space-around;padding:8px 6px 0;margin-top:6px;border-top:1px solid rgba(255,255,255,.12)}
+.bnav2 button{display:flex;flex-direction:column;align-items:center;font-size:.72rem;opacity:.75;min-width:54px}
+.bnav2 button span{font-size:1.2rem;line-height:1.5;position:relative}
+.bnav2 button.on{opacity:1;font-weight:700}
+body.soc-open #cam{visibility:hidden}
+.ttop{position:absolute;top:calc(64px + var(--safe-t));left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;z-index:3}
 .tcol{display:flex;flex-direction:column;gap:12px}
 .brand{font-weight:700;font-size:1.05rem;letter-spacing:.5px;background:var(--glass);padding:6px 14px;border-radius:999px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .brand b{background:linear-gradient(90deg,#C4B5FD,#67E8F9);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -166,6 +179,17 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
   <div id="count" hidden></div>
   <div id="recTime" hidden>0:00</div>
   <div id="faceHint" hidden></div>
+  <div class="trow0">
+    <div class="tgrp">
+      <button class="ibtn sbadge" id="meBtn" aria-label="پروفائل"><span id="meAvatar">👤</span></button>
+      <button class="ibtn" id="searchBtn" aria-label="تلاش">🔍</button>
+    </div>
+    <div class="tgrp">
+      <button class="ibtn sbadge" id="bellBtn" aria-label="اطلاعات">🔔<i class="nb" id="bBell" hidden></i></button>
+      <button class="ibtn sbadge" id="addBtn" aria-label="دوست بنائیں">👤<b style="font-size:.8rem">+</b><i class="nb" id="bReq" hidden></i></button>
+    </div>
+  </div>
+  <div id="targetBar" hidden></div>
   <div class="ttop">
     <div class="lens" id="lensPill">
       <canvas id="lensThumb" width="96" height="96"></canvas>
@@ -195,6 +219,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
       <button class="side" id="galBtn" title="فون سے تصویر" aria-label="فون سے تصویر">🖼️</button>
     </div>
     <nav class="cats" id="cats" aria-label="اقسام"></nav>
+    <nav class="bnav2" aria-label="حصے">
+      <button id="navChat"><span>💬<i class="nb" id="bChat" hidden></i></span>چیٹ</button>
+      <button id="navFriends"><span>👥</span>دوست</button>
+      <button id="navCam" class="on"><span>📷</span>کیمرہ</button>
+      <button id="navStories"><span>⭕<i class="nb" id="bStory" hidden></i></span>اسٹوریز</button>
+      <button id="navMe"><span>🙂</span>میں</button>
+    </nav>
   </div>
 </section>
 
@@ -261,6 +292,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 <div id="toast" hidden></div>
 
 <script src="fx.js"></script>
+<script src="social-config.js"></script>
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
@@ -603,7 +635,7 @@ let chipT = 0;
 function liveChips() {                  // refresh the buttons with the live camera ~2× a second
   clearInterval(chipT);
   chipT = setInterval(() => {
-    if ($('cam').hidden || document.hidden || recording || !v.videoWidth) return;
+    if ($('cam').hidden || document.hidden || recording || !v.videoWidth || document.body.classList.contains('soc-open')) return;
     lastSquare = squareOf(v, facing === 'user' && mirrorSelfie, null); chipTime = performance.now() / 1000;
     if (window.FX3D) { const d = mk(1, 1), dx = d.getContext('2d'); dx.drawImage(lastSquare, 0, 0, 1, 1); const [r, g, b] = dx.getImageData(0, 0, 1, 1).data; window.FX3D.setLight(r, g, b); }
     const el = $('strip'), L = el.scrollLeft - 70, Rr = el.scrollLeft + el.clientWidth + 70;
@@ -712,7 +744,7 @@ function faceHint() {
 function fxLoop(now) {
   requestAnimationFrame(fxLoop);
   fxT = now / 1000;
-  if ($('cam').hidden || !fxCur) {
+  if ($('cam').hidden || !fxCur || document.body.classList.contains('soc-open')) {
     if (!fxCleared) { fxc.getContext('2d').clearRect(0, 0, fxc.width, fxc.height); fxCleared = true; }
     faceHint(); return;
   }
@@ -971,6 +1003,7 @@ addEventListener('resize', () => { if (!$('edit').hidden && raw) { layoutBox(); 
 function closeEditor() { raw = null; show('cam'); }
 $('eClose').onclick = async () => { if ((items.length || strokes.length) && !confirm('یہ تصویر چھوڑ دیں؟')) return; history.back(); };
 addEventListener('popstate', () => {
+  if (window.LamhaSocial && window.LamhaSocial.onBack()) return;
   if (!$('edit').hidden) closeEditor();
   else if (!$('vedit').hidden) closeVideo();
   else if (!$('viewer').hidden) closeViewer();
@@ -1184,7 +1217,11 @@ async function shareBlob(blob, name) {
 }
 $('eSave').onclick = async () => { const b = await compose(); download(b, 'lamha-' + stamp() + '.jpg'); toast('✓ فون میں محفوظ ہو گئی'); };
 $('eKeep').onclick = async () => { const b = await compose(); await memAdd(b, 'photo'); toast('⭐ محفوظ لمحوں میں رکھ دی'); };
-$('eShare').onclick = async () => { const b = await compose(); shareBlob(b, 'lamha-' + stamp() + '.jpg'); };
+$('eShare').onclick = async () => {
+  const b = await compose();
+  if (window.LamhaSocial && window.LamhaSocial.configured) window.LamhaSocial.send(b, 'photo');
+  else shareBlob(b, 'lamha-' + stamp() + '.jpg');
+};
 
 // ---- gallery import ----
 $('galBtn').onclick = $('permGallery').onclick = () => $('pick').click();
@@ -1265,13 +1302,39 @@ $('vwSave').onclick = () => { download(vwItem.blob, 'lamha-' + stamp() + '.' + e
 $('vwShare').onclick = () => shareBlob(vwItem.blob, 'lamha-' + stamp() + '.' + extOf(vwItem.blob.type));
 $('vwDel').onclick = async () => { if (!confirm('یہ لمحہ حذف کر دیں؟')) return; await tx('readwrite', s => s.delete(vwItem.id)); refreshMemBtn(); history.back(); };
 
+// ============ social (lib/social.js) ============
+window.LamhaHost = {
+  toast, busy, target: null,
+  showCamera() { if ($('edit').hidden && $('vedit').hidden && $('mem').hidden && $('viewer').hidden) show('cam'); },
+  shareOut(b) { shareBlob(b, 'lamha-' + stamp() + '.' + extOf(b.type)); },
+  // "send a photo to X": the camera shows who it is for, the send screen pre-selects them
+  cameraFor(name, uid) {
+    window.LamhaHost.target = { uid, name };
+    $('targetBar').innerHTML = '📷 ' + esc(name) + ' کے لیے <button id="targetOff" aria-label="منسوخ">✕</button>'; $('targetBar').hidden = false;
+    $('targetOff').onclick = () => { window.LamhaHost.target = null; $('targetBar').hidden = true; };
+    show('cam');
+  },
+  afterSend() { $('targetBar').hidden = true; }
+};
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let socialLoad = null;
+function loadSocial() { return socialLoad = socialLoad || import('./lib/social.js').catch(e => { console.warn('social', e); socialLoad = null; }); }
+async function social(name) { await loadSocial(); if (window.LamhaSocial) window.LamhaSocial.open(name); }
+$('meBtn').onclick = $('navMe').onclick = () => social('profile');
+$('searchBtn').onclick = () => social('search');
+$('bellBtn').onclick = () => social('notifs');
+$('addBtn').onclick = $('navFriends').onclick = () => social('friends');
+$('navChat').onclick = () => social('chats');
+$('navStories').onclick = () => social('stories');
+$('navCam').onclick = () => {};
+
 // ============ start ============
 buildCats(); buildLensStrip(); updateLensPill();
 buildStrip($('strip2'), (id, fromScroll) => setEFilter(id, !fromScroll));
 async function boot() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { permissionHelp(null); return; }
   show('cam');
-  if (await startCam()) { markStrip($('strip'), lens.id, true); refreshMemBtn(); liveChips(); if (fxCur && fxCur.face) ensureFace(); if (fxCur && fxCur.three) ensure3D(); }
+  if (await startCam()) { markStrip($('strip'), lens.id, true); refreshMemBtn(); liveChips(); setTimeout(loadSocial, 1500); if (fxCur && fxCur.face) ensureFace(); if (fxCur && fxCur.three) ensure3D(); }
 }
 $('startBtn').onclick = boot;
 // If the camera was allowed before, open it straight away.
