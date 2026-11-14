@@ -134,6 +134,10 @@ body.soc-open #cam{visibility:hidden}
 /* sheets */
 .sheet{position:absolute;left:0;right:0;bottom:0;max-height:62%;background:#15151d;border-radius:22px 22px 0 0;z-index:14;padding:10px 14px calc(14px + var(--safe-b));display:flex;flex-direction:column;gap:10px;box-shadow:0 -10px 40px rgba(0,0,0,.5)}
 .sheet .grab{width:44px;height:5px;border-radius:3px;background:#444;margin:0 auto}
+.aibtn{background:linear-gradient(135deg,#7C3AED,#06B6D4)}
+.aichips{display:flex;flex-wrap:wrap;gap:8px;max-height:34vh;overflow:auto}
+.aichips button{background:#262634;border-radius:999px;padding:7px 14px;font-size:.88rem}
+#aiText{width:100%;min-height:56px;border-radius:14px;border:1px solid #333;background:#1c1c26;color:#fff;font:inherit;padding:10px;resize:none}
 .emojis{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:6px;overflow:auto;font-size:2rem;text-align:center}
 .emojis button{padding:4px;border-radius:10px}
 .emojis button:active{background:#2a2a36}
@@ -239,6 +243,8 @@ body.soc-open #cam{visibility:hidden}
       <button class="ibtn" id="tDraw" title="ڈرا کریں" aria-label="ڈرا کریں">✏️</button>
       <button class="ibtn" id="tSticker" title="اسٹیکر" aria-label="اسٹیکر">😊</button>
       <button class="ibtn" id="tFilter" title="فلٹر" aria-label="فلٹر">✨</button>
+      <button class="ibtn aibtn" id="tAI" title="AI سے ایڈٹ" aria-label="AI سے ایڈٹ">🪄<small>AI</small></button>
+      <button class="ibtn" id="tAIUndo" title="اصل تصویر واپس" aria-label="اصل تصویر واپس" hidden>↩</button>
       <button class="ibtn" id="tUndo" title="واپس" aria-label="واپس" hidden>↶</button>
     </div>
   </div>
@@ -257,6 +263,14 @@ body.soc-open #cam{visibility:hidden}
       <button class="pill" id="tStyle">انداز: سایہ</button>
       <button class="pill go" id="tDone" style="margin:0">✓ ٹھیک ہے</button>
     </div>
+  </div>
+  <div class="sheet" id="aiSheet" hidden>
+    <div class="grab"></div>
+    <b>🪄 AI سے تصویر بدلیں</b>
+    <div class="aichips" id="aiChips"></div>
+    <textarea id="aiText" rows="2" dir="auto" maxlength="500" placeholder="یا خود لکھیں: کیا بدلنا ہے؟ مثلاً «پیچھے پہاڑ لگا دیں»"></textarea>
+    <button class="pill go" id="aiGo" style="margin:0;justify-content:center">🪄 بنائیں</button>
+    <small style="opacity:.6;line-height:1.7">تصویر Grok (xAI) کو بھیجی جاتی ہے۔ دوسروں کی تصویر صرف ان کی اجازت سے بدلیں۔</small>
   </div>
   <div class="sheet" id="stickers" hidden><div class="grab"></div><div class="emojis" id="emojis"></div></div>
 </section>
@@ -1007,7 +1021,7 @@ function drawPreview() {
 }
 function openEditor(src, mirror, crop, snap) {
   raw = src; rawMirror = !!mirror; rawCrop = crop || null; efilter = filterId; efx = snap || null;
-  items = []; strokes = []; ov.innerHTML = ''; setDraw(false);
+  items = []; strokes = []; ov.innerHTML = ''; setDraw(false); aiOriginal = null; $('tAIUndo').hidden = true; $('aiSheet').hidden = true;
   show('edit'); layoutBox(); drawPreview(); redrawStrokes();
   paintStrip($('strip2'), squareOf(raw, rawMirror, rawCrop));
   markStrip($('strip2'), efilter, true); $('estrip').hidden = true;
@@ -1175,6 +1189,62 @@ function bindItem(it) {
   el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
 }
 function overTrash(e) { const r = $('trash').getBoundingClientRect(); return e.clientX > r.left - 10 && e.clientX < r.right + 10 && e.clientY > r.top - 10 && e.clientY < r.bottom + 10; }
+
+// ---- AI edit (Grok via /api/ai-edit on the server) ----
+const AI_CHIPS = [
+  ['✨ چہرہ صاف کریں', 'Clean up the face: smooth the skin, remove pimples, spots and blemishes, even out the skin tone. Keep it natural and keep the same person, pose and background.'],
+  ['🌅 بہتر روشنی اور رنگ', 'Improve the lighting and colours so it looks like a professional photo. Keep everything else the same.'],
+  ['😊 مسکراہٹ', 'Make the person smile naturally. Keep everything else the same.'],
+  ['🧹 پس منظر صاف', 'Remove clutter from the background and make it clean. Keep the person exactly the same.'],
+  ['🏖️ ساحل', 'Replace the background with a sunny beach. Keep the person exactly the same.'],
+  ['🏔️ پہاڑ', 'Replace the background with green mountains and a clear sky, like northern Pakistan. Keep the person exactly the same.'],
+  ['🕌 بادشاہی مسجد', 'Replace the background with the Badshahi Mosque in Lahore at golden hour. Keep the person exactly the same.'],
+  ['🌃 رات کا شہر', 'Replace the background with a city at night with soft bokeh lights. Keep the person exactly the same.'],
+  ['👔 سوٹ', 'Dress the person in an elegant black suit with a white shirt. Keep the face exactly the same.'],
+  ['🎨 کارٹون', 'Turn this photo into a cute 3D cartoon in a Pixar-like style, keeping the person recognisable.'],
+  ['🖼️ پینٹنگ', 'Turn this photo into a beautiful oil painting.']
+];
+let aiOriginal = null;
+$('aiChips').innerHTML = AI_CHIPS.map((c, i) => '<button data-ai="' + i + '">' + c[0] + '</button>').join('');
+$('tAI').onclick = () => { setDraw(false); $('stickers').hidden = true; $('aiSheet').hidden = !$('aiSheet').hidden; };
+$('aiChips').onclick = e => { const b = e.target.closest('[data-ai]'); if (b) runAI(AI_CHIPS[+b.dataset.ai][1]); };
+$('aiGo').onclick = () => { const t = $('aiText').value.trim(); if (!t) { $('aiText').focus(); return; } runAI('Edit this photo: ' + t); };
+$('stage').addEventListener('pointerdown', e => { if (!$('aiSheet').hidden && !e.target.closest('.sheet')) $('aiSheet').hidden = true; });
+async function runAI(prompt) {
+  $('aiSheet').hidden = true;
+  const full = await compose();                          // everything on the photo so far
+  busy(true, '🪄 AI تصویر بدل رہا ہے… (10 سے 30 سیکنڈ)');
+  try {
+    const bmp = await createImageBitmap(full), k = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
+    const c = mk(bmp.width * k, bmp.height * k); c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    const image = c.toDataURL('image/jpeg', .9);
+    let idToken = null;
+    try { if (window.LamhaSocial && window.LamhaSocial.idToken) idToken = await window.LamhaSocial.idToken(); } catch (e) {}
+    const r = await fetch('api/ai-edit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image, prompt, idToken }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.image) throw Object.assign(new Error(j.error || 'ai'), { code: j.error || 'ai' });
+    const out = await createImageBitmap(await (await fetch(j.image)).blob());
+    if (!aiOriginal) aiOriginal = { raw, rawMirror, rawCrop, efx, efilter, items: items.slice(), strokes: strokes.slice() };
+    // the AI result becomes the new photo; text/drawings were already part of what was sent
+    ov.innerHTML = ''; items = []; strokes = []; raw = out; rawMirror = false; rawCrop = null; efx = null; efilter = 'none';
+    layoutBox(); drawPreview(); redrawStrokes(); markStrip($('strip2'), efilter, true);
+    $('tAIUndo').hidden = false;
+    busy(false); toast('🪄 ہو گیا! پسند نہ آئے تو ↩ دبائیں');
+  } catch (e) {
+    busy(false);
+    const m = { setup: 'AI ابھی سیٹ اپ نہیں ہوا (Vercel میں Grok کی key باقی ہے)', auth: 'AI کے لیے پہلے لاگ ان کریں', limit: 'آج کی AI حد پوری ہو گئی، کل دوبارہ کوشش کریں', bad: 'یہ تصویر نہیں بھیجی جا سکی', ai: 'AI سے جواب نہیں آیا، دوبارہ کوشش کریں' }[e.code];
+    toast(m || 'انٹرنیٹ چیک کریں اور دوبارہ کوشش کریں');
+    if (e.code === 'auth' && window.LamhaSocial) window.LamhaSocial.open('profile');
+  }
+}
+$('tAIUndo').onclick = () => {
+  if (!aiOriginal) return;
+  ({ raw, rawMirror, rawCrop, efx, efilter } = aiOriginal);
+  ov.innerHTML = ''; items = []; strokes = aiOriginal.strokes;
+  for (const it of aiOriginal.items) { ov.appendChild(it.el); items.push(it); }
+  aiOriginal = null; $('tAIUndo').hidden = true;
+  layoutBox(); drawPreview(); redrawStrokes(); for (const it of items) paintItem(it); markStrip($('strip2'), efilter, true);
+};
 
 // ---- final full-resolution image ----
 async function compose() {
