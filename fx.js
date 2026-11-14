@@ -103,7 +103,7 @@
   add('aviator3d', 'سنہری چشمہ 3D', 'face', { face: true, three: true, thumb: 'assets/lens/aviator.jpg', draw: D3(['aviator']), draw2d: glasses2d('#d8b25a', 'rgba(150,170,190,.95)') });
   add('dark3d', 'کالا چشمہ 3D', 'face', { face: true, three: true, draw: D3(['dark']), draw2d: glasses2d('#111', 'rgba(15,15,20,.95)') });
   add('cap3d', 'کیپ 3D', 'face', { face: true, three: true, draw: D3(['cap']), draw2d: cap2d });
-  add('capshades3d', 'کیپ اور چشمہ 3D', 'face', { face: true, three: true, draw: D3(['cap', 'aviator']), draw2d(x, W, H, t, f) { cap2d(x, W, H, t, f); glasses2d('#d8b25a', 'rgba(150,170,190,.95)')(x, W, H, t, f); } });
+  add('capshades3d', 'کیپ اور چشمہ 3D', 'face', { face: true, thumb: 'assets/lens/capshades.jpg', three: true, draw: D3(['cap', 'aviator']), draw2d(x, W, H, t, f) { cap2d(x, W, H, t, f); glasses2d('#d8b25a', 'rgba(150,170,190,.95)')(x, W, H, t, f); } });
   function cap2d(x, W, H, t, face) {
     const f = F(face, W, H), cw = f.w * 1.1;
     x.save(); x.translate(f.top.x, f.top.y + f.w * .05); x.rotate(f.ang); x.fillStyle = '#18181b';
@@ -133,7 +133,7 @@
     }
     x.restore();
   } });
-  add('crown', 'تاج', 'face', { face: true, draw(x, W, H, t, face) {
+  add('crown', 'تاج', 'face', { face: true, thumb: 'assets/lens/crown.jpg', draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H), cw = f.w * .78, ch = f.w * .42, u = up(f, f.w * .12);
     x.save(); x.translate(f.top.x + u.x, f.top.y + u.y); x.rotate(f.ang);
     x.fillStyle = gold(x, -cw / 2, -ch, cw / 2, 0); x.shadowColor = 'rgba(255,200,60,.7)'; x.shadowBlur = f.w * .08;
@@ -148,7 +148,7 @@
     x.restore();
     for (let i = 0; i < 6; i++) { const a = t * 1.5 + i; sparkle(x, f.top.x + Math.cos(a) * f.w * .5 + u.x, f.top.y - f.w * .25 + Math.sin(a * 1.3) * f.w * .2, f.w * .05 * (.6 + .4 * Math.sin(t * 4 + i)), t, '#fff7d1', '#ffd34d'); }
   } });
-  add('mustache', 'مونچھ', 'face', { face: true, draw(x, W, H, t, face) {
+  add('mustache', 'مونچھ', 'face', { face: true, thumb: 'assets/lens/mustache.jpg', draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H), mw = f.w * .5, mh = f.w * .14;
     x.save(); x.translate(f.lip.x, f.lip.y); x.rotate(f.ang); x.fillStyle = '#24160d'; x.shadowColor = 'rgba(0,0,0,.4)'; x.shadowBlur = f.w * .02;
     for (const s of [-1, 1]) {
@@ -159,7 +159,7 @@
     }
     x.restore();
   } });
-  add('cat', 'بلی', 'face', { face: true, draw(x, W, H, t, face) {
+  add('cat', 'بلی', 'face', { face: true, thumb: 'assets/lens/cat.jpg', draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H), u = up(f, f.w * .22), ew = f.w * .3;
     for (const s of [-1, 1]) {
       x.save(); x.translate(f.top.x + Math.cos(f.ang) * s * f.w * .3 + u.x, f.top.y + Math.sin(f.ang) * s * f.w * .3 + u.y); x.rotate(f.ang + s * .25);
@@ -173,7 +173,7 @@
     for (const s of [-1, 1]) for (let k = -1; k <= 1; k++) { x.beginPath(); x.moveTo(s * f.w * .1, f.w * .03 + k * f.w * .03); x.lineTo(s * f.w * .38, k * f.w * .07); x.stroke(); }
     x.restore();
   } });
-  add('hearteyes', 'دل آنکھیں', 'face', { face: true, draw(x, W, H, t, face) {
+  add('hearteyes', 'دل آنکھیں', 'face', { face: true, thumb: 'assets/lens/hearteyes.jpg', draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H), s = f.w * .3 * (1 + .08 * Math.sin(t * 6));
     for (const e of sortEyes(f)) { x.save(); x.shadowColor = '#ff4d8d'; x.shadowBlur = f.w * .08; heart(x, e.x, e.y + f.w * .02, s, '#ff2e63'); x.restore(); }
     for (let i = 0; i < 7; i++) {
@@ -181,7 +181,7 @@
       heart(x, f.top.x + Math.cos(a) * f.w * (.4 + k * .3), f.top.y - k * f.w * .9, f.w * .1 * (1 - k * .5), 'rgba(255,90,140,' + (1 - k) + ')');
     }
   } });
-  add('flowers', 'پھولوں کا تاج', 'face', { face: true, draw(x, W, H, t, face) {
+  add('flowers', 'پھولوں کا تاج', 'face', { face: true, thumb: 'assets/lens/flowers.jpg', draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H), u = up(f, f.w * .05), R = f.w * .55, cs = ['🌸', '🌼', '🌺', '🌷'];
     x.save(); x.translate(f.top.x + u.x, f.top.y + u.y + f.w * .35); x.rotate(f.ang);
     x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = Math.round(f.w * .17) + 'px system-ui,"Apple Color Emoji","Noto Color Emoji",sans-serif';
