@@ -1,8 +1,11 @@
-// Lumio AI photo edit: the photo + an instruction go to Grok (xAI image edits) and the
-// edited photo comes back. Runs on Vercel so the xAI key never reaches the phone.
+// Lumio AI photo edit: the photo + an instruction go to OpenAI (gpt-image-1) or Grok
+// (xAI image edits), whichever key is set, and the edited photo comes back. Runs on Vercel so the xAI key never reaches the phone.
 //
 // Vercel -> Project -> Settings -> Environment Variables:
-//   XAI_API_KEY        (required) key from console.x.ai
+//   OPENAI_API_KEY     key from platform.openai.com (used first when set)
+//   XAI_API_KEY        key from console.x.ai
+//   (at least one of the two is required)
+//   OPENAI_IMAGE_MODEL (optional) default "gpt-image-1"
 //   FIREBASE_API_KEY   (required for sign-in check) the apiKey from social-config.js
 //   AI_DAILY_LIMIT     (optional) edits per person per day, default 20
 //   XAI_IMAGE_MODEL    (optional) default "grok-imagine-image"
@@ -68,10 +71,28 @@ async function editWithGrok(image, prompt) {
   throw new Error(last);
 }
 
+// OpenAI image edits take multipart form data with the photo as a file.
+async function editWithOpenAI(image, prompt) {
+  const m = /^data:(image\/[a-z]+);base64,(.*)$/.exec(image);
+  const type = m[1], bytes = Buffer.from(m[2], 'base64');
+  const form = new FormData();
+  form.append('model', process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1');
+  form.append('prompt', prompt);
+  form.append('n', '1');
+  form.append('size', 'auto');
+  form.append('image', new Blob([bytes], { type }), 'photo.' + (type.split('/')[1] === 'jpeg' ? 'jpg' : type.split('/')[1]));
+  const r = await fetch('https://api.openai.com/v1/images/edits', { method: 'POST', headers: { Authorization: 'Bearer ' + process.env.OPENAI_API_KEY }, body: form });
+  const text = await r.text();
+  if (!r.ok) throw new Error(r.status + ' ' + text.slice(0, 300));
+  const item = JSON.parse(text).data && JSON.parse(text).data[0];
+  if (!item) throw new Error('empty answer');
+  return toDataUrl(item);
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') { res.status(405).json({ error: 'method' }); return; }
-  if (!process.env.XAI_API_KEY) { res.status(503).json({ error: 'setup' }); return; }
+  if (!process.env.OPENAI_API_KEY && !process.env.XAI_API_KEY) { res.status(503).json({ error: 'setup' }); return; }
   const body = (req.body && typeof req.body === 'object') ? req.body : {};
   const image = String(body.image || ''), prompt = String(body.prompt || '').trim().slice(0, 1000);
   if (!/^data:image\/(jpeg|png|webp);base64,/.test(image) || image.length > 4e6 || !prompt) { res.status(400).json({ error: 'bad' }); return; }
@@ -79,7 +100,8 @@ module.exports = async (req, res) => {
     const uid = await whoIs(body.idToken);
     if (!uid) { res.status(401).json({ error: 'auth' }); return; }
     if (!allowed(uid)) { res.status(429).json({ error: 'limit' }); return; }
-    res.status(200).json({ image: await editWithGrok(image, prompt) });
+    const edited = process.env.OPENAI_API_KEY ? await editWithOpenAI(image, prompt) : await editWithGrok(image, prompt);
+    res.status(200).json({ image: edited });
   } catch (e) {
     console.error('ai-edit', e);
     res.status(502).json({ error: 'ai', detail: String(e && e.message || e).slice(0, 200) });
