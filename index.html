@@ -270,7 +270,7 @@ body.soc-open #cam{visibility:hidden}
     <div class="aichips" id="aiChips"></div>
     <textarea id="aiText" rows="2" dir="auto" maxlength="500" placeholder="یا خود لکھیں: کیا بدلنا ہے؟ مثلاً «پیچھے پہاڑ لگا دیں»"></textarea>
     <button class="pill go" id="aiGo" style="margin:0;justify-content:center">🪄 بنائیں</button>
-    <small style="opacity:.6;line-height:1.7">تصویر Grok (xAI) کو بھیجی جاتی ہے۔ دوسروں کی تصویر صرف ان کی اجازت سے بدلیں۔</small>
+    <small style="opacity:.6;line-height:1.7">تصویر AI (OpenAI یا Grok) کو بھیجی جاتی ہے۔ دوسروں کی تصویر صرف ان کی اجازت سے بدلیں۔</small>
   </div>
   <div class="sheet" id="stickers" hidden><div class="grab"></div><div class="emojis" id="emojis"></div></div>
 </section>
@@ -1232,7 +1232,7 @@ async function runAI(prompt) {
     busy(false); toast('🪄 ہو گیا! پسند نہ آئے تو ↩ دبائیں');
   } catch (e) {
     busy(false);
-    const m = { setup: 'AI ابھی سیٹ اپ نہیں ہوا (Vercel میں Grok کی key باقی ہے)', auth: 'AI کے لیے پہلے لاگ ان کریں', limit: 'آج کی AI حد پوری ہو گئی، کل دوبارہ کوشش کریں', bad: 'یہ تصویر نہیں بھیجی جا سکی', ai: 'AI سے جواب نہیں آیا، دوبارہ کوشش کریں' }[e.code];
+    const m = { setup: 'AI ابھی سیٹ اپ نہیں ہوا (Vercel میں OpenAI یا Grok کی key باقی ہے)', auth: 'AI کے لیے پہلے لاگ ان کریں', limit: 'آج کی AI حد پوری ہو گئی، کل دوبارہ کوشش کریں', bad: 'یہ تصویر نہیں بھیجی جا سکی', ai: 'AI سے جواب نہیں آیا، دوبارہ کوشش کریں' }[e.code];
     toast(m || 'انٹرنیٹ چیک کریں اور دوبارہ کوشش کریں');
     if (e.code === 'auth' && window.LamhaSocial) window.LamhaSocial.open('profile');
   }
