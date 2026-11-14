@@ -1,7 +1,7 @@
 // Offline + speed: files come from the phone's cache instantly and are refreshed in the
 // background (stale-while-revalidate), so the app opens fast and big files
 // (face tracking, 3D) are downloaded only once.
-const CACHE = 'lamha-v9';
+const CACHE = 'lumio-v10';
 const SHELL = ['./', 'index.html', 'fx.js', 'social-config.js', 'privacy.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-512-maskable.png', 'apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {

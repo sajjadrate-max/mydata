@@ -1,4 +1,4 @@
-// Lamha effects: decorations, frames, occasions and face effects, all drawn in code.
+// Lumio effects: decorations, frames, occasions and face effects, all drawn in code.
 // Every effect is draw(ctx, W, H, t, face): a pure function of time t (seconds), so the
 // same moment can be drawn again at full photo resolution. `face` (face effects only) holds
 // screen-normalised landmarks from MediaPipe Face Landmarker, or null when no face is seen.
@@ -277,7 +277,7 @@
     const s = W * .05, b = H * .15;
     x.save(); x.fillStyle = '#fbfaf6'; x.beginPath(); x.rect(0, 0, W, H); x.rect(s, s, W - s * 2, H - s - b); x.fill('evenodd');
     x.fillStyle = '#4b5563'; x.font = '700 ' + Math.round(b * .28) + 'px ' + URDU; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
-    const d = new Date(); x.fillText('لمحہ · ' + d.toLocaleDateString('ur-PK', { day: 'numeric', month: 'long', year: 'numeric' }), W / 2, H - b / 2); x.restore();
+    const d = new Date(); x.fillText('Lumio · ' + d.toLocaleDateString('ur-PK', { day: 'numeric', month: 'long', year: 'numeric' }), W / 2, H - b / 2); x.restore();
   } });
   add('film', 'فلم', 'frame', { filter: 'retro', draw(x, W, H) {
     const sw = W * .085, hole = sw * .45; x.fillStyle = '#0b0b0b'; x.fillRect(0, 0, sw, H); x.fillRect(W - sw, 0, sw, H);

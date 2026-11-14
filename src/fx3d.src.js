@@ -1,4 +1,4 @@
-// Lamha 3D face effects: real 3D glasses and cap that follow the head.
+// Lumio 3D face effects: real 3D glasses and cap that follow the head.
 // Built with three.js (MIT) into lib/fx3d.js:
 //   npx esbuild src/fx3d.src.js --bundle --format=esm --minify --outfile=lib/fx3d.js
 //
@@ -47,7 +47,7 @@ function capTexture(color) {
     }
     for (let r = 0; r < 4; r++) { x.strokeStyle = 'rgba(255,255,255,.1)'; x.setLineDash([5, 6]); x.beginPath(); x.moveTo(0, h - 18 - r * 9); x.lineTo(w, h - 18 - r * 9); x.stroke(); }
     x.setLineDash([]);
-    // embroidered sparkle (Lamha mark) on the front panel, u = .25
+    // embroidered sparkle (Lumio mark) on the front panel, u = .25
     const cx = w * .25, cy = h * .58, R = 46;
     x.fillStyle = '#f5f5f5'; x.shadowColor = 'rgba(0,0,0,.6)'; x.shadowBlur = 3; x.beginPath();
     for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 - Math.PI / 2, rr = i % 2 ? R * .28 : R; x.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); }
