@@ -530,7 +530,8 @@ window.LamhaSocial = {
     if (H.target && H.target.uid) sendSel = new Set([H.target.uid]);
     need('send');
   },
-  get loggedIn() { return !!(me && prof); }
+  get loggedIn() { return !!(me && prof); },
+  idToken: () => me ? me.getIdToken() : Promise.resolve(null)   // for the AI edit server check
 };
 updateBadges();
 document.dispatchEvent(new Event('lamha-social'));
