@@ -1,4 +1,4 @@
-// Lamha social: Gmail login, profile, search, friends, notifications, chat with snaps, stories.
+// Lumio social: Gmail login, profile, search, friends, notifications, chat with snaps, stories.
 // Firebase (Auth + Firestore). Built into lib/social.js:
 //   npx esbuild src/social.src.js --bundle --format=esm --minify --outfile=lib/social.js
 // Config: social-config.js (window.LAMHA_FIREBASE). Add ?emu to the address to use local emulators.
@@ -281,7 +281,7 @@ function render() {
   if (!screen) return;
   const R = {
     setup: () => header('سیٹ اپ باقی ہے') + '<div class="sb"><div class="empty2">لاگ ان، چیٹ، دوست اور اسٹوریز کے لیے Firebase کا سیٹ اپ ابھی باقی ہے۔<br>یہ ایک بار کا کام ہے۔</div></div>',
-    login: () => header('لاگ ان') + '<div class="sb" style="display:flex;flex-direction:column;align-items:center;gap:18px;padding-top:50px;text-align:center"><img src="icon-192.png" style="width:90px;height:90px;border-radius:24px" alt=""><h2 style="margin:0">لمحہ میں خوش آمدید</h2><p style="color:#9aa0b4;margin:0;line-height:1.9">دوست بنائیں، تصویریں بھیجیں، چیٹ کریں اور اپنی اسٹوری لگائیں۔</p><button class="pb go" data-act="login" style="height:50px;padding:0 28px;font-size:1rem">G&nbsp;&nbsp;Gmail سے لاگ ان کریں</button><small style="color:#6b7080;line-height:1.8">لاگ ان کر کے آپ <a href="privacy.html" style="color:#A78BFA">پرائیویسی پالیسی</a> سے متفق ہیں۔</small></div>',
+    login: () => header('لاگ ان') + '<div class="sb" style="display:flex;flex-direction:column;align-items:center;gap:18px;padding-top:50px;text-align:center"><img src="icon-192.png" style="width:90px;height:90px;border-radius:24px" alt=""><h2 style="margin:0">Lumio میں خوش آمدید</h2><p style="color:#9aa0b4;margin:0;line-height:1.9">دوست بنائیں، تصویریں بھیجیں، چیٹ کریں اور اپنی اسٹوری لگائیں۔</p><button class="pb go" data-act="login" style="height:50px;padding:0 28px;font-size:1rem">G&nbsp;&nbsp;Gmail سے لاگ ان کریں</button><small style="color:#6b7080;line-height:1.8">لاگ ان کر کے آپ <a href="privacy.html" style="color:#A78BFA">پرائیویسی پالیسی</a> سے متفق ہیں۔</small></div>',
     username: () => header('اپنا یوزرنیم چنیں') + '<div class="sb" style="display:flex;flex-direction:column;gap:12px"><p style="color:#9aa0b4;margin:0">دوست آپ کو اسی یوزرنیم سے تلاش کریں گے۔</p><label>نام<input class="inp" id="uName" maxlength="40" value="' + esc(me && me.displayName || '') + '"></label><label>یوزرنیم<input class="inp" id="uUser" dir="ltr" maxlength="20" autocapitalize="off" value="' + esc(suggestUser()) + '"></label><div id="uErr" style="color:#f87171"></div><button class="pb go" data-act="claim" style="height:48px">آگے</button></div>',
     profile: renderProfile, search: renderSearch, friends: renderFriends, notifs: renderNotifs, chats: renderChats, chat: renderChat, stories: renderStories, send: renderSend, person: renderPerson
   };
@@ -501,7 +501,7 @@ root.addEventListener('click', async e => {
     if (d.mystory !== undefined) { sendStory = !sendStory; render(); return; }
     if (d.shareMe !== undefined) {
       const url = location.origin + location.pathname + '?add=' + encodeURIComponent(prof.username);
-      if (navigator.share) navigator.share({ title: 'لمحہ', text: 'لمحہ پر مجھے دوست بنائیں: @' + prof.username, url }).catch(() => {});
+      if (navigator.share) navigator.share({ title: 'Lumio', text: 'Lumio پر مجھے دوست بنائیں: @' + prof.username, url }).catch(() => {});
       else { await navigator.clipboard.writeText(url).catch(() => {}); H.toast('🔗 لنک کاپی ہو گیا'); }
     }
   } catch (x) { H.toast(errMsg(x)); }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>لمحہ — کیمرہ</title>
+<title>Lumio — کیمرہ</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="لمحہ">
+<meta name="apple-mobile-web-app-title" content="Lumio">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@700&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap">
 <style>
@@ -166,7 +166,7 @@ body.soc-open #cam{visibility:hidden}
 <!-- Start / permission -->
 <section class="screen" id="perm">
   <img src="icon-512.png" alt="">
-  <h1>لمحہ</h1>
+  <h1 dir="ltr">Lumio</h1>
   <p id="permText">ہر لمحہ خوبصورت۔ بہترین کوالٹی کی تصویریں اور ویڈیوز بنائیں، فلٹر لگائیں، لکھیں، سجائیں اور شیئر کریں۔</p>
   <button class="big" id="startBtn">📷 کیمرہ کھولیں</button>
   <button class="ghost" id="permGallery">🖼️ فون سے تصویر ایڈٹ کریں</button>
@@ -1294,17 +1294,17 @@ function download(blob, name) {
 async function shareBlob(blob, name) {
   const file = new File([blob], name, { type: blob.type });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: 'لمحہ' }); return true; }
+    try { await navigator.share({ files: [file], title: 'Lumio' }); return true; }
     catch (e) { if (e.name === 'AbortError') return false; }
   }
   download(blob, name); toast('شیئر یہاں نہیں ہو سکا، فائل محفوظ کر دی گئی'); return false;
 }
-$('eSave').onclick = async () => { const b = await compose(); download(b, 'lamha-' + stamp() + '.jpg'); toast('✓ فون میں محفوظ ہو گئی'); };
+$('eSave').onclick = async () => { const b = await compose(); download(b, 'lumio-' + stamp() + '.jpg'); toast('✓ فون میں محفوظ ہو گئی'); };
 $('eKeep').onclick = async () => { const b = await compose(); await memAdd(b, 'photo'); toast('⭐ محفوظ لمحوں میں رکھ دی'); };
 $('eShare').onclick = async () => {
   const b = await compose();
   if (window.LamhaSocial && window.LamhaSocial.configured) window.LamhaSocial.send(b, 'photo');
-  else shareBlob(b, 'lamha-' + stamp() + '.jpg');
+  else shareBlob(b, 'lumio-' + stamp() + '.jpg');
 };
 
 // ---- gallery import ----
@@ -1327,9 +1327,9 @@ function openVideo(blob) {
 function closeVideo() { const p = $('vplay'); p.pause(); p.removeAttribute('src'); show('cam'); }
 $('vClose').onclick = () => { if (confirm('یہ ویڈیو چھوڑ دیں؟')) history.back(); };
 $('vMute').onclick = () => { const p = $('vplay'); p.muted = !p.muted; $('vMute').textContent = p.muted ? '🔇' : '🔊'; };
-$('vSave').onclick = () => { download(vBlob, 'lamha-' + stamp() + '.' + extOf(vBlob.type)); toast('✓ فون میں محفوظ ہو گئی'); };
+$('vSave').onclick = () => { download(vBlob, 'lumio-' + stamp() + '.' + extOf(vBlob.type)); toast('✓ فون میں محفوظ ہو گئی'); };
 $('vKeep').onclick = async () => { await memAdd(vBlob, 'video'); toast('⭐ محفوظ لمحوں میں رکھ دی'); };
-$('vShare').onclick = () => shareBlob(vBlob, 'lamha-' + stamp() + '.' + extOf(vBlob.type));
+$('vShare').onclick = () => shareBlob(vBlob, 'lumio-' + stamp() + '.' + extOf(vBlob.type));
 
 // ============ memories (kept in this browser, IndexedDB) ============
 let dbP = null;
@@ -1382,15 +1382,15 @@ $('mgrid').onclick = async e => {
 };
 function closeViewer() { $('vwBody').innerHTML = ''; openMem(false); }
 $('vwClose').onclick = () => history.back();
-$('vwSave').onclick = () => { download(vwItem.blob, 'lamha-' + stamp() + '.' + extOf(vwItem.blob.type)); toast('✓ فون میں محفوظ ہو گئی'); };
-$('vwShare').onclick = () => shareBlob(vwItem.blob, 'lamha-' + stamp() + '.' + extOf(vwItem.blob.type));
+$('vwSave').onclick = () => { download(vwItem.blob, 'lumio-' + stamp() + '.' + extOf(vwItem.blob.type)); toast('✓ فون میں محفوظ ہو گئی'); };
+$('vwShare').onclick = () => shareBlob(vwItem.blob, 'lumio-' + stamp() + '.' + extOf(vwItem.blob.type));
 $('vwDel').onclick = async () => { if (!confirm('یہ لمحہ حذف کر دیں؟')) return; await tx('readwrite', s => s.delete(vwItem.id)); refreshMemBtn(); history.back(); };
 
 // ============ social (lib/social.js) ============
 window.LamhaHost = {
   toast, busy, target: null,
   showCamera() { if ($('edit').hidden && $('vedit').hidden && $('mem').hidden && $('viewer').hidden) show('cam'); },
-  shareOut(b) { shareBlob(b, 'lamha-' + stamp() + '.' + extOf(b.type)); },
+  shareOut(b) { shareBlob(b, 'lumio-' + stamp() + '.' + extOf(b.type)); },
   // "send a photo to X": the camera shows who it is for, the send screen pre-selects them
   cameraFor(name, uid) {
     window.LamhaHost.target = { uid, name };

@@ -1,4 +1,4 @@
-// Lamha AI photo edit: the photo + an instruction go to Grok (xAI image edits) and the
+// Lumio AI photo edit: the photo + an instruction go to Grok (xAI image edits) and the
 // edited photo comes back. Runs on Vercel so the xAI key never reaches the phone.
 //
 // Vercel -> Project -> Settings -> Environment Variables:

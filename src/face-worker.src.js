@@ -1,4 +1,4 @@
-// Face tracking in a background thread, so the camera screen never waits for it.
+// Lumio: face tracking in a background thread, so the camera screen never waits for it.
 // Built (with MediaPipe Tasks Vision, Apache-2.0) into lib/face-worker.js:
 //   npx esbuild src/face-worker.src.js --bundle --format=iife --minify --outfile=lib/face-worker.js
 // A classic (non-module) worker, because MediaPipe loads its wasm loader with importScripts.
